@@ -1,0 +1,17 @@
+[package]
+name = "elktracer_editor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+elktracer_core = { path = "../elktracer_core" }
+# Logging
+log = { workspace = true }
+# Window & Rendering
+winit = { version = "0.30.9" }
+imgui = { version = "0.12.0", features = ["docking"] }
+ash = { version = "0.38.0", features = ["linked"] }
+ash-window = "0.13.0"
+raw-window-handle = "0.6.2"
+imgui-rs-vulkan-renderer = { version = "1.16.0" }
+imgui-winit-support = "0.13.0"
