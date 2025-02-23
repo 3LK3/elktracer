@@ -25,6 +25,14 @@ impl Vec3f {
         f64::sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
     }
 
+    pub fn unit(self) -> Self {
+        self / self.magnitude()
+    }
+
+    pub fn dot(&self, other: Vec3f) -> f64 {
+        self.x * other.x + self.y * other.y + self.z * other.z
+    }
+
     pub fn x(&self) -> f64 {
         self.x
     }
@@ -35,10 +43,6 @@ impl Vec3f {
 
     pub fn z(&self) -> f64 {
         self.z
-    }
-
-    pub fn unit(self) -> Self {
-        self / self.magnitude()
     }
 }
 
@@ -185,6 +189,16 @@ mod tests {
             let expected = Vec3f::new(1.0 / 3.0, -2.0 / 3.0, 2.0 / 3.0);
 
             assert_eq!(actual, expected);
+        }
+    }
+
+    #[test]
+    fn dot_should_be_correct() {
+        {
+            let a = Vec3f::new(1.0, 3.0, -5.0);
+            let b = Vec3f::new(4.0, -2.0, -1.0);
+
+            assert_eq!(a.dot(b), 3.0);
         }
     }
 }

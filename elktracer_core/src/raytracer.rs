@@ -3,11 +3,15 @@ use std::{env::current_dir, path::Path, u32};
 use crate::{
     color::Color,
     math::{ray::Ray, vector3::Vec3f},
+    scene::{sphere::Sphere, SceneObject},
 };
 
 pub struct Raytracer {
     image_width: u32,
     image_height: u32,
+    sphere: Sphere,
+    background_gradient_start: Color,
+    background_gradient_end: Color,
 }
 
 impl Raytracer {
@@ -17,6 +21,9 @@ impl Raytracer {
         Self {
             image_width,
             image_height: image_height.clamp(1, u32::MAX),
+            sphere: Sphere::new(Vec3f::new(0.0, 0.0, -1.0), 0.5),
+            background_gradient_start: Color::new(0.3, 0.6, 0.9),
+            background_gradient_end: Color::new(1.0, 1.0, 1.0),
         }
     }
 
@@ -80,12 +87,13 @@ impl Raytracer {
     }
 
     fn calculate_color(&self, ray: &Ray) -> Color {
-        let unit_direction = ray.direction().unit();
-        let a: f64 = (unit_direction.y() + 1.0) * 0.5;
+        if self.sphere.intersect(ray) {
+            return Color::new(0.0, 1.0, 0.0);
+        }
 
-        // (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
-
-        Color::new(1.0, 1.0, 1.0) * (1.0 - a) + Color::new(0.5, 0.7, 1.0) * a
+        let a: f64 = (ray.direction().unit().y() + 1.0) * 0.5;
+        self.background_gradient_end * (1.0 - a)
+            + self.background_gradient_start * a
     }
 }
 
