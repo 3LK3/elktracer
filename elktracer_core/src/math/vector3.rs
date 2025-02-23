@@ -22,7 +22,11 @@ impl Vec3f {
     }
 
     pub fn magnitude(&self) -> f64 {
-        f64::sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
+        f64::sqrt(self.magnitude_squared())
+    }
+
+    pub fn magnitude_squared(&self) -> f64 {
+        self.x * self.x + self.y * self.y + self.z * self.z
     }
 
     pub fn unit(self) -> Self {

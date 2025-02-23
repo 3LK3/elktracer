@@ -59,13 +59,11 @@ impl Raytracer {
         let upper_left_pixel =
             viewport_upper_left + (pixel_delta_x + pixel_delta_y) * 0.5;
 
-        log::info!("Upper left: {:?}", upper_left_pixel);
-
         let mut rgb_image =
             image::RgbImage::new(self.image_width, self.image_height);
 
         for y in 0..self.image_height {
-            log::trace!("Progress in height: {}/{}", y, self.image_height);
+            // log::trace!("Progress in height: {}/{}", y, self.image_height);
 
             for x in 0..self.image_width {
                 let pixel_center = upper_left_pixel
@@ -91,13 +89,11 @@ impl Raytracer {
     }
 
     fn calculate_color(&self, ray: &Ray) -> Color {
-        let hit = self.sphere.intersects(ray);
-        if hit > 0.0 {
-            let normal = (ray.at(hit) - Vec3f::new(0.0, 0.0, -1.0)).unit();
+        if let Some(ray_hit) = self.sphere.intersects(ray, (0.0, 1000.0)) {
             return Color::new(
-                normal.x() + 1.0,
-                normal.y() + 1.0,
-                normal.z() + 1.0,
+                ray_hit.normal.x() + 1.0,
+                ray_hit.normal.y() + 1.0,
+                ray_hit.normal.z() + 1.0,
             );
         }
 
