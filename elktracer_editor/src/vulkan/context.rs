@@ -5,9 +5,10 @@ use std::{
 };
 
 use ash::{ext::debug_utils, khr::surface, vk, Entry};
-use log::trace;
 use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
 use winit::window::Window;
+
+use elktracer_core::profile_scope;
 
 #[cfg(all(debug_assertions))]
 const ENABLE_VALIDATION_LAYERS: bool = true;
@@ -44,17 +45,19 @@ impl VulkanContext {
         window: &Window,
         name: &str,
     ) -> Result<Self, Box<dyn Error>> {
+        profile_scope!("Initializing VulkanContext");
+
         let entry = Entry::linked();
 
-        trace!("Creating vulkan instance");
+        // log::trace!("Creating vulkan instance");
         let (instance, debug_utils, debug_utils_messenger) =
             create_instance(&entry, &window, name)
                 .expect("Unable to create vulkan instance");
 
-        trace!("Creating vulkan surface");
+        // log::trace!("Creating vulkan surface");
         let surface = surface::Instance::new(&entry, &instance);
 
-        trace!("Creating vulkan khr surface");
+        // log::trace!("Creating vulkan khr surface");
         let surface_khr = unsafe {
             ash_window::create_surface(
                 &entry,
@@ -114,7 +117,7 @@ impl VulkanContext {
 
 impl Drop for VulkanContext {
     fn drop(&mut self) {
-        trace!("Destroying VulkanContext");
+        profile_scope!("Destroying VulkanContext");
         unsafe {
             self.device.destroy_command_pool(self.command_pool, None);
             self.device.destroy_device(None);
@@ -140,7 +143,7 @@ fn create_instance(
     ),
     Box<dyn Error>,
 > {
-    trace!("Creating vulkan instance");
+    profile_scope!("Creating vulkan instance");
 
     let app_name = CString::new(title)?;
     let engine_name = CString::new("No Engine")?;
@@ -234,7 +237,6 @@ fn get_required_extensions(window: &Window) -> Vec<*const i8> {
     .to_vec();
 
     if ENABLE_VALIDATION_LAYERS {
-        trace!("vk: enable validation layers");
         extensions.push(debug_utils::NAME.as_ptr());
     }
 
@@ -246,7 +248,7 @@ fn pick_physical_device(
     surface: &surface::Instance,
     surface_khr: vk::SurfaceKHR,
 ) -> Result<(vk::PhysicalDevice, u32, u32), Box<dyn Error>> {
-    trace!("Picking vulkan physical device");
+    profile_scope!("Picking vulkan physical device");
 
     let devices = unsafe {
         instance
@@ -349,7 +351,7 @@ fn create_logical_device_with_queue(
     graphics_queue_index: u32,
     present_queue_index: u32,
 ) -> Result<(ash::Device, vk::Queue, vk::Queue), Box<dyn Error>> {
-    trace!("Creating vulkan logical device and graphics queue");
+    profile_scope!("Creating vulkan logical device and graphics queue");
 
     let queue_priorities = [1.0f32];
     let queue_create_infos = {

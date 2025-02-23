@@ -7,6 +7,7 @@ use winit::{dpi::PhysicalSize, window};
 use super::{
     context::VulkanContext, record_command_buffers, swap_chain::Swapchain,
 };
+use elktracer_core::profile_scope;
 
 pub struct VulkanRenderer {
     pub renderer: Renderer,
@@ -226,7 +227,7 @@ impl VulkanRenderer {
 
 impl Drop for VulkanRenderer {
     fn drop(&mut self) {
-        log::trace!("Destroying VulkanRenderer");
+        profile_scope!("Destroying VulkanRenderer");
 
         unsafe {
             self.vulkan_context

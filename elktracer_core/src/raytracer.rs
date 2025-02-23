@@ -3,6 +3,7 @@ use std::{env::current_dir, path::Path, u32};
 use crate::{
     color::Color,
     math::{ray::Ray, vector3::Vec3f},
+    profile_scope,
     scene::{sphere::Sphere, SceneObject},
 };
 
@@ -28,6 +29,8 @@ impl Raytracer {
     }
 
     pub fn render_image(&self) -> () {
+        profile_scope!("Raytracer::render_image");
+
         log::info!(
             "Rendering image\n  - size: {}x{}",
             self.image_width,
@@ -63,6 +66,7 @@ impl Raytracer {
 
         for y in 0..self.image_height {
             log::trace!("Progress in height: {}/{}", y, self.image_height);
+
             for x in 0..self.image_width {
                 let pixel_center = upper_left_pixel
                     + (pixel_delta_x * x)
@@ -87,8 +91,14 @@ impl Raytracer {
     }
 
     fn calculate_color(&self, ray: &Ray) -> Color {
-        if self.sphere.intersect(ray) {
-            return Color::new(0.0, 1.0, 0.0);
+        let hit = self.sphere.intersects(ray);
+        if hit > 0.0 {
+            let normal = (ray.at(hit) - Vec3f::new(0.0, 0.0, -1.0)).unit();
+            return Color::new(
+                normal.x() + 1.0,
+                normal.y() + 1.0,
+                normal.z() + 1.0,
+            );
         }
 
         let a: f64 = (ray.direction().unit().y() + 1.0) * 0.5;

@@ -94,7 +94,7 @@ impl Application for EditorApplication {
                 if ui.button("Generate image") {
                     log::info!("Generating image ...");
                     let aspect_ratio: f64 = 16.0 / 9.0;
-                    let image_width = 400;
+                    let image_width = 600;
                     let raytracer = Raytracer::new(image_width, aspect_ratio);
                     raytracer.render_image();
                 }

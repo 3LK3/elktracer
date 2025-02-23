@@ -17,11 +17,17 @@ impl Sphere {
 }
 
 impl SceneObject for Sphere {
-    fn intersect(&self, ray: &Ray) -> bool {
+    fn intersects(&self, ray: &Ray) -> f64 {
         let origin_center = self.center_position - ray.origin();
         let a = ray.direction().dot(ray.direction());
         let b = -2.0 * ray.direction().dot(origin_center);
         let c = origin_center.dot(origin_center) - self.radius * self.radius;
-        (b * b - 4.0 * a * c) >= 0.0
+        let discriminant = b * b - 4.0 * a * c;
+
+        if discriminant < 0.0 {
+            -1.0
+        } else {
+            (-b - f64::sqrt(discriminant)) / (2.0 * a)
+        }
     }
 }

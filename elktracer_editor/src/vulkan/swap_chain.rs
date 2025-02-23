@@ -1,10 +1,10 @@
 use std::error::Error;
 
 use ash::{khr, vk};
-use log::trace;
 use winit::dpi::PhysicalSize;
 
 use super::context::VulkanContext;
+use elktracer_core::profile_scope;
 
 pub struct Swapchain {
     pub loader: khr::swapchain::Device,
@@ -49,9 +49,9 @@ impl Swapchain {
 
     pub fn recreate(
         &mut self,
-        vulkan_context: &VulkanContext
+        vulkan_context: &VulkanContext,
     ) -> Result<(), Box<dyn Error>> {
-        trace!("Recreating the swapchain");
+        profile_scope!("Recreating the swapchain");
 
         unsafe { vulkan_context.device.device_wait_idle()? };
 
@@ -85,7 +85,7 @@ impl Swapchain {
     }
 
     pub fn destroy(&mut self, vulkan_context: &VulkanContext) {
-        trace!("Destroying swapchain");
+        profile_scope!("Destroying swapchain");
 
         unsafe {
             self.frame_buffers.iter().for_each(|fb| {
@@ -122,7 +122,7 @@ fn create_vulkan_swapchain(
     vulkan_context: &VulkanContext,
     window_size: &PhysicalSize<u32>,
 ) -> Result<CreateSwapchainResult, Box<dyn Error>> {
-    trace!("Creating vulkan swapchain");
+    profile_scope!("Creating vulkan swapchain");
     // Swapchain format
     let format = {
         let formats = unsafe {
@@ -147,7 +147,6 @@ fn create_vulkan_swapchain(
                 .unwrap_or(&formats[0])
         }
     };
-    log::debug!("Swapchain format: {format:?}");
 
     // Swapchain present mode
     let present_mode = {
@@ -165,7 +164,6 @@ fn create_vulkan_swapchain(
             vk::PresentModeKHR::FIFO
         }
     };
-    log::debug!("Swapchain present mode: {present_mode:?}");
 
     let capabilities = unsafe {
         vulkan_context
@@ -189,11 +187,9 @@ fn create_vulkan_swapchain(
             }
         }
     };
-    log::debug!("Swapchain extent: {extent:?}");
 
     // Swapchain image count
     let image_count = capabilities.min_image_count;
-    log::debug!("Swapchain image count: {image_count:?}");
 
     // Swapchain
     let families_indices = vulkan_context.get_queue_indices();
@@ -255,6 +251,15 @@ fn create_vulkan_swapchain(
         })
         .collect::<Result<Vec<_>, _>>()?;
 
+    log::trace!(
+        "\n\
+        Swapchain\n\
+        - format: {format:?}\n\
+        - present mode: {present_mode:?}\n\
+        - extent: {extent:?}\n\
+        - image count: {image_count:?}"
+    );
+
     Ok((
         swapchain,
         swapchain_khr,
@@ -269,7 +274,8 @@ fn create_vulkan_render_pass(
     device: &ash::Device,
     format: vk::Format,
 ) -> Result<vk::RenderPass, Box<dyn Error>> {
-    log::debug!("Creating vulkan render pass");
+    profile_scope!("Creating vulkan render pass");
+
     let attachment_descs = [vk::AttachmentDescription::default()
         .format(format)
         .samples(vk::SampleCountFlags::TYPE_1)
@@ -311,7 +317,8 @@ fn create_vulkan_frame_buffers(
     extent: vk::Extent2D,
     image_views: &[vk::ImageView],
 ) -> Result<Vec<vk::Framebuffer>, Box<dyn Error>> {
-    log::debug!("Creating vulkan framebuffers");
+    profile_scope!("Creating vulkan framebuffers");
+
     Ok(image_views
         .iter()
         .map(|view| [*view])

@@ -3,6 +3,10 @@ name = "elktracer_core"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+proc-macro = false
+path = "src/lib.rs"
+
 [build]
 rustflags = ["-Z", "threads=8"]
 

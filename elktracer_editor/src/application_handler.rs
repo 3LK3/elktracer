@@ -1,6 +1,7 @@
 use std::time::Instant;
 
-use log::{trace, warn};
+use elktracer_core::profile_scope;
+// use log::{trace, warn};
 use winit::{application::ApplicationHandler, event_loop::ActiveEventLoop};
 
 use crate::application::{Application, EditorApplication};
@@ -26,10 +27,12 @@ impl EditorApplicationHandler {
 
 impl ApplicationHandler for EditorApplicationHandler {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        trace!("ElktracerEditorApplication :: resumed");
+        profile_scope!("Resuming application");
 
         if self.application.is_some() {
-            warn!("Application already initialized. TODO handle differently?");
+            log::warn!(
+                "Application already initialized. TODO handle differently?"
+            );
             return;
         }
 
@@ -44,20 +47,7 @@ impl ApplicationHandler for EditorApplicationHandler {
         _event_loop: &winit::event_loop::ActiveEventLoop,
         _cause: winit::event::StartCause,
     ) {
-        // if self.application.is_none() {
-        //     return;
-        // }
-
-        let now = Instant::now();
-        self.last_frame_duration =
-            now.duration_since(self.last_frame_time.unwrap());
-        self.last_frame_time = Some(now);
-
-        // self.imgui_context
-        //     .as_mut()
-        //     .unwrap()
-        //     .io_mut()
-        //     .update_delta_time(delta_time);
+        self.last_frame_duration = self.last_frame_time.unwrap().elapsed();
     }
 
     fn window_event(
@@ -74,11 +64,11 @@ impl ApplicationHandler for EditorApplicationHandler {
 
         match event {
             winit::event::WindowEvent::CloseRequested => {
-                trace!("Requested window close");
+                log::trace!("Requested window close");
                 self.should_close = true
             }
             winit::event::WindowEvent::Resized(new_size) => {
-                trace!("Windows resized to {new_size:?}");
+                log::trace!("Windows resized to {new_size:?}");
                 application.on_window_resize(window_id, new_size);
             }
             // winit::event::WindowEvent::RedrawRequested => {
@@ -210,7 +200,7 @@ impl ApplicationHandler for EditorApplicationHandler {
     // }
 
     fn exiting(&mut self, _event_loop: &winit::event_loop::ActiveEventLoop) {
-        trace!("ElktracerEditorApplication :: exiting");
+        profile_scope!("Exiting application");
 
         self.application.as_mut().unwrap().on_exit();
     }
