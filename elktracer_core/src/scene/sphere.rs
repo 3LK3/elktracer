@@ -1,5 +1,7 @@
-use super::{RayHitDetails, SceneObject};
-use crate::math::{ray::Ray, vector3::Vec3f};
+use crate::{
+    math::{interval::Interval, ray::Ray, vector3::Vec3f},
+    ray_hit::{RayHitDetails, RayHitTest},
+};
 
 pub struct Sphere {
     center_position: Vec3f,
@@ -15,12 +17,8 @@ impl Sphere {
     }
 }
 
-impl SceneObject for Sphere {
-    fn intersects(
-        &self,
-        ray: &Ray,
-        t_range: (f64, f64),
-    ) -> Option<RayHitDetails> {
+impl RayHitTest for Sphere {
+    fn does_hit(&self, ray: &Ray, ray_t: &Interval) -> Option<RayHitDetails> {
         let origin_center = self.center_position - ray.origin();
         let a = ray.direction().magnitude_squared();
         let h = ray.direction().dot(origin_center);
@@ -35,18 +33,19 @@ impl SceneObject for Sphere {
 
         // Find the nearest root that lies in the acceptable range.
         let mut root = (h - discriminant_sqrt) / a;
-        if root <= t_range.0 || t_range.1 <= root {
+        if !ray_t.surrounds(root) {
             root = (h + discriminant_sqrt) / a;
-            if root <= t_range.0 || t_range.1 <= root {
+            if !ray_t.surrounds(root) {
                 return None;
             }
         }
 
         let point = ray.at(root);
-        Some(RayHitDetails::new(
+        Some(RayHitDetails::from(
             point,
-            (point - self.center_position) / self.radius,
             root,
+            ray,
+            (point - self.center_position) / self.radius,
         ))
     }
 }

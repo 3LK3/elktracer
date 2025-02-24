@@ -1,16 +1,17 @@
-use std::{env::current_dir, path::Path, u32};
+use std::{path::Path, u32};
 
 use crate::{
     color::Color,
-    math::{ray::Ray, vector3::Vec3f},
+    math::{interval::Interval, ray::Ray, vector3::Vec3f},
     profile_scope,
-    scene::{sphere::Sphere, SceneObject},
+    ray_hit::RayHitTest,
+    scene::{sphere::Sphere, tree::SceneTree},
 };
 
 pub struct Raytracer {
     image_width: u32,
     image_height: u32,
-    sphere: Sphere,
+    scene_tree: SceneTree,
     background_gradient_start: Color,
     background_gradient_end: Color,
 }
@@ -18,17 +19,20 @@ pub struct Raytracer {
 impl Raytracer {
     pub fn new(image_width: u32, aspect_ratio: f64) -> Self {
         let image_height = (image_width as f64 / aspect_ratio) as u32;
+        let mut scene_tree = SceneTree::new();
+        scene_tree.add(Sphere::new(Vec3f::new(0.0, 0.0, -1.0), 0.5));
+        scene_tree.add(Sphere::new(Vec3f::new(0.0, -100.5, -1.0), 100.0));
 
         Self {
             image_width,
             image_height: image_height.clamp(1, u32::MAX),
-            sphere: Sphere::new(Vec3f::new(0.0, 0.0, -1.0), 0.5),
+            scene_tree,
             background_gradient_start: Color::new(0.3, 0.6, 0.9),
             background_gradient_end: Color::new(1.0, 1.0, 1.0),
         }
     }
 
-    pub fn render_image(&self) -> () {
+    pub fn render_image(&self, path: &Path) -> () {
         profile_scope!("Raytracer::render_image");
 
         log::info!(
@@ -69,16 +73,14 @@ impl Raytracer {
                 let pixel_center = upper_left_pixel
                     + (pixel_delta_x * x)
                     + (pixel_delta_y * y);
+
                 let ray = Ray::new(camera_center, pixel_center - camera_center);
 
-                let color = self.calculate_color(&ray);
-
-                rgb_image.put_pixel(x, y, color.as_rgb());
+                rgb_image.put_pixel(x, y, self.calculate_color(&ray).as_rgb());
             }
         }
 
-        let path = Path::new(&current_dir().unwrap()).join("out.png");
-        match rgb_image.save_with_format(&path, image::ImageFormat::Png) {
+        match rgb_image.save_with_format(path, image::ImageFormat::Png) {
             Ok(_) => {
                 log::info!("Successfully rendered to {:?}", path);
             }
@@ -89,12 +91,15 @@ impl Raytracer {
     }
 
     fn calculate_color(&self, ray: &Ray) -> Color {
-        if let Some(ray_hit) = self.sphere.intersects(ray, (0.0, 1000.0)) {
+        if let Some(ray_hit) = self
+            .scene_tree
+            .does_hit(ray, &Interval::new(0.0, f64::INFINITY))
+        {
             return Color::new(
-                ray_hit.normal.x() + 1.0,
-                ray_hit.normal.y() + 1.0,
-                ray_hit.normal.z() + 1.0,
-            );
+                ray_hit.normal().x() + 1.0,
+                ray_hit.normal().y() + 1.0,
+                ray_hit.normal().z() + 1.0,
+            ) * 0.7;
         }
 
         let a: f64 = (ray.direction().unit().y() + 1.0) * 0.5;

@@ -7,6 +7,43 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug executable 'elktracer_cli'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=elktracer_cli",
+                    "--package=elktracer_cli"
+                ],
+                "filter": {
+                    "name": "elktracer_cli",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'elktracer_cli'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=elktracer_cli",
+                    "--package=elktracer_cli"
+                ],
+                "filter": {
+                    "name": "elktracer_cli",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug unit tests in library 'elktracer_core'",
             "cargo": {
                 "args": [

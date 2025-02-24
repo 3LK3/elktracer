@@ -1,8 +1,8 @@
 [workspace]
 resolver = "2"
 
-members = ["elktracer_core", "elktracer_editor"]
+members = ["elktracer_cli", "elktracer_core", "elktracer_editor"]
 
 [workspace.dependencies]
 # Logging
-log = "0.4.25"
+log = "0.4.26"

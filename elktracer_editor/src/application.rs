@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{env::current_dir, error::Error, path::Path};
 
 use elktracer_core::raytracer::Raytracer;
 use imgui_winit_support::{HiDpiMode, WinitPlatform};
@@ -96,7 +96,9 @@ impl Application for EditorApplication {
                     let aspect_ratio: f64 = 16.0 / 9.0;
                     let image_width = 600;
                     let raytracer = Raytracer::new(image_width, aspect_ratio);
-                    raytracer.render_image();
+                    raytracer.render_image(
+                        &Path::new(&current_dir().unwrap()).join("out.png"),
+                    );
                 }
             });
 

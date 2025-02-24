@@ -3,6 +3,7 @@ pub mod logging;
 pub mod math;
 pub mod profiler;
 pub mod raytracer;
+pub mod ray_hit;
 pub mod scene;
 pub mod utils;
 

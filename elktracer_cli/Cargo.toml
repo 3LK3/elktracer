@@ -1,0 +1,9 @@
+[package]
+name = "elktracer_cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+elktracer_core = { path = "../elktracer_core" }
+# Logging
+log = { workspace = true }
