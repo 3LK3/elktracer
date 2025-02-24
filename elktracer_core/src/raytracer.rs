@@ -5,7 +5,7 @@ use crate::{
     math::{interval::Interval, ray::Ray, vector3::Vec3f},
     profile_scope,
     ray_hit::RayHitTest,
-    scene::{sphere::Sphere, tree::SceneTree},
+    scene::{camera::Camera, sphere::Sphere, tree::SceneTree},
 };
 
 pub struct Raytracer {
@@ -14,6 +14,9 @@ pub struct Raytracer {
     scene_tree: SceneTree,
     background_gradient_start: Color,
     background_gradient_end: Color,
+    samples_per_pixel: u16,
+    pixel_samples_scale: f64,
+    camera: Camera,
 }
 
 impl Raytracer {
@@ -23,12 +26,18 @@ impl Raytracer {
         scene_tree.add(Sphere::new(Vec3f::new(0.0, 0.0, -1.0), 0.5));
         scene_tree.add(Sphere::new(Vec3f::new(0.0, -100.5, -1.0), 100.0));
 
+        let camera = Camera::new(Vec3f::zero(), 1.0, image_width, image_height);
+        let samples_per_pixel = 10;
+
         Self {
             image_width,
             image_height: image_height.clamp(1, u32::MAX),
             scene_tree,
             background_gradient_start: Color::new(0.3, 0.6, 0.9),
             background_gradient_end: Color::new(1.0, 1.0, 1.0),
+            samples_per_pixel: 10,
+            pixel_samples_scale: 1.0 / (samples_per_pixel as f64),
+            camera,
         }
     }
 
@@ -41,42 +50,22 @@ impl Raytracer {
             self.image_height
         );
 
-        // distance from eye to viewport
-        let focal_length = 1.0;
-        // the eye of the tiger or viewer
-        let camera_center = Vec3f::zero();
-
-        let viewport_height: f64 = 2.0;
-        let viewport_width: f64 = viewport_height
-            * (self.image_width as f64 / self.image_height as f64);
-
-        let viewport_edge_x = Vec3f::new(viewport_width, 0.0, 0.0);
-        let viewport_edge_y = Vec3f::new(0.0, -viewport_height, 0.0);
-
-        let pixel_delta_x = viewport_edge_x / (self.image_width as f64);
-        let pixel_delta_y = viewport_edge_y / (self.image_height as f64);
-
-        let viewport_upper_left = camera_center
-            - Vec3f::new(0.0, 0.0, focal_length)
-            - viewport_edge_x / 2.0
-            - viewport_edge_y / 2.0;
-        let upper_left_pixel =
-            viewport_upper_left + (pixel_delta_x + pixel_delta_y) * 0.5;
-
         let mut rgb_image =
             image::RgbImage::new(self.image_width, self.image_height);
 
         for y in 0..self.image_height {
-            // log::trace!("Progress in height: {}/{}", y, self.image_height);
-
             for x in 0..self.image_width {
-                let pixel_center = upper_left_pixel
-                    + (pixel_delta_x * x)
-                    + (pixel_delta_y * y);
+                let mut color = Color::new(0.0, 0.0, 0.0);
 
-                let ray = Ray::new(camera_center, pixel_center - camera_center);
+                for _sample in 0..self.samples_per_pixel {
+                    color += self.calculate_color(&self.camera.get_ray(x, y));
+                }
 
-                rgb_image.put_pixel(x, y, self.calculate_color(&ray).as_rgb());
+                rgb_image.put_pixel(
+                    x,
+                    y,
+                    (color * self.pixel_samples_scale).as_rgb(),
+                );
             }
         }
 

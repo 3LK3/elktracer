@@ -1,6 +1,8 @@
-use std::ops::{Add, Mul};
+use std::ops::{Add, AddAssign, Mul};
 
 use image::Rgb;
+
+use crate::math::interval::Interval;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Color {
@@ -18,10 +20,11 @@ impl Color {
     }
 
     pub fn as_rgb(&self) -> Rgb<u8> {
+        let intensity = Interval::new(0.0, 0.999);
         Rgb([
-            (self.r * 255.0) as u8,
-            (self.g * 255.0) as u8,
-            (self.b * 255.0) as u8,
+            (256.0 * intensity.clamp(self.r)) as u8,
+            (256.0 * intensity.clamp(self.g)) as u8,
+            (256.0 * intensity.clamp(self.b)) as u8,
         ])
     }
 
@@ -41,6 +44,14 @@ impl Add for Color {
             g: self.g + rhs.g,
             b: self.b + rhs.b,
         }
+    }
+}
+
+impl AddAssign for Color {
+    fn add_assign(&mut self, rhs: Self) {
+        self.r = self.r + rhs.r;
+        self.g = self.g + rhs.g;
+        self.b = self.b + rhs.b;
     }
 }
 
