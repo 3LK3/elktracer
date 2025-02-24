@@ -1,4 +1,9 @@
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::{
+    f64,
+    ops::{Add, Div, Mul, Neg, Sub},
+};
+
+use rand::{distr::uniform::SampleRange, Rng};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vec3f {
@@ -19,6 +24,43 @@ impl Vec3f {
 
     pub fn one() -> Self {
         Self::new(1.0, 1.0, 1.0)
+    }
+
+    pub fn random_range<R>(random: &mut rand::rngs::ThreadRng, range: R) -> Self
+    where
+        R: SampleRange<f64> + Clone,
+    {
+        Self::new(
+            random.random_range(range.clone()),
+            random.random_range(range.clone()),
+            random.random_range(range.clone()),
+        )
+    }
+
+    pub fn random(random: &mut rand::rngs::ThreadRng) -> Self {
+        Self::random_range(random, 0.0..=1.0)
+    }
+
+    pub fn random_unit(random: &mut rand::rngs::ThreadRng) -> Self {
+        loop {
+            let p = Self::random_range(random, -1.0..=1.0);
+            let lensq = p.magnitude_squared();
+            if 1e-160 < lensq && lensq <= 1.0 {
+                return p / f64::sqrt(lensq);
+            }
+        }
+    }
+
+    pub fn random_on_hemisphere(
+        random: &mut rand::rngs::ThreadRng,
+        normal: Vec3f,
+    ) -> Self {
+        let on_unit_sphere = Self::random_unit(random);
+        if on_unit_sphere.dot(normal) > 0.0 {
+            on_unit_sphere
+        } else {
+            -on_unit_sphere
+        }
     }
 
     pub fn magnitude(&self) -> f64 {

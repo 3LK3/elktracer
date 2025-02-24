@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use crate::math::{ray::Ray, vector3::Vec3f};
 
 pub struct Camera {
@@ -5,6 +7,7 @@ pub struct Camera {
     viewport_upper_left_pixel: Vec3f,
     viewport_pixel_delta_x: Vec3f,
     viewport_pixel_delta_y: Vec3f,
+    random: rand::rngs::ThreadRng,
 }
 
 impl Camera {
@@ -35,12 +38,15 @@ impl Camera {
                 + (pixel_delta_x + pixel_delta_y) * 0.5,
             viewport_pixel_delta_x: pixel_delta_x,
             viewport_pixel_delta_y: pixel_delta_y,
+            random: rand::rng(),
         }
     }
 
-    pub fn get_ray(&self, x: u32, y: u32) -> Ray {
-        let offset =
-            (rand::random_range(-0.5..0.5), rand::random_range(-0.5..0.5));
+    pub fn get_ray(&mut self, x: u32, y: u32) -> Ray {
+        let offset = (
+            self.random.random_range(-0.5..=0.5),
+            self.random.random_range(-0.5..=0.5),
+        );
 
         let pixel_sample = self.viewport_upper_left_pixel
             + (self.viewport_pixel_delta_x * (x as f64 + offset.0))

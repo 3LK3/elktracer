@@ -2,7 +2,7 @@ use crate::math::{interval::Interval, ray::Ray, vector3::Vec3f};
 
 pub struct RayHitDetails {
     point: Vec3f,
-    pub t: f64,
+    t: f64,
     normal: Vec3f,
     is_front_face: bool,
 }
@@ -30,6 +30,14 @@ impl RayHitDetails {
 
     pub fn normal(&self) -> Vec3f {
         self.normal
+    }
+
+    pub fn point(&self) -> Vec3f {
+        self.point
+    }
+
+    pub fn t(&self) -> f64 {
+        self.t
     }
 }
 

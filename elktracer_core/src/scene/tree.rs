@@ -28,7 +28,7 @@ impl RayHitTest for SceneTree {
             if let Some(hit) =
                 object.does_hit(ray, &Interval::new(ray_t.min(), closest))
             {
-                closest = hit.t;
+                closest = hit.t();
                 hit_result = Some(hit);
             }
         }

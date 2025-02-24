@@ -95,7 +95,8 @@ impl Application for EditorApplication {
                     log::info!("Generating image ...");
                     let aspect_ratio: f64 = 16.0 / 9.0;
                     let image_width = 600;
-                    let raytracer = Raytracer::new(image_width, aspect_ratio);
+                    let mut raytracer =
+                        Raytracer::new(image_width, aspect_ratio, 10, 10);
                     raytracer.render_image(
                         &Path::new(&current_dir().unwrap()).join("out.png"),
                     );
