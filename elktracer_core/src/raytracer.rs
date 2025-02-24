@@ -97,15 +97,16 @@ impl Raytracer {
 
         if let Some(ray_hit) = self
             .scene_tree
-            .does_hit(ray, &Interval::new(0.0, f64::INFINITY))
+            .does_hit(ray, &Interval::new(0.001, f64::INFINITY))
         {
             let direction =
-                Vec3f::random_on_hemisphere(&mut self.random, ray_hit.normal());
+                ray_hit.normal() + Vec3f::random_unit(&mut self.random);
+            // Vec3f::random_on_hemisphere(&mut self.random, ray_hit.normal());
             // TODO: no recursion?
             return self.calculate_color(
                 &Ray::new(ray_hit.point(), direction),
                 depth - 1,
-            ) * 0.5;
+            ) * 0.3;
         }
 
         let a: f64 = (ray.direction().unit().y() + 1.0) * 0.5;

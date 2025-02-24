@@ -19,11 +19,20 @@ impl Color {
 
     pub fn as_rgb(&self) -> Rgb<u8> {
         let intensity = Interval::new(0.0, 0.999);
+
         Rgb([
-            (256.0 * intensity.clamp(self.r)) as u8,
-            (256.0 * intensity.clamp(self.g)) as u8,
-            (256.0 * intensity.clamp(self.b)) as u8,
+            (256.0 * intensity.clamp(Self::linear_to_gamma(self.r))) as u8,
+            (256.0 * intensity.clamp(Self::linear_to_gamma(self.g))) as u8,
+            (256.0 * intensity.clamp(Self::linear_to_gamma(self.b))) as u8,
         ])
+    }
+
+    fn linear_to_gamma(linear_component: f64) -> f64 {
+        if linear_component > 0.0 {
+            f64::sqrt(linear_component)
+        } else {
+            0.0
+        }
     }
 
     // fn clamp(&mut self) {
