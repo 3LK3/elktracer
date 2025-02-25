@@ -1,5 +1,6 @@
 pub mod color;
 pub mod logging;
+pub mod material;
 pub mod math;
 pub mod profiler;
 pub mod raytracer;

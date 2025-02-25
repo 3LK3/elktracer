@@ -1,13 +1,11 @@
 use std::{path::Path, u32};
 
-use rand::rngs::ThreadRng;
-
 use crate::{
     color::Color,
     math::{interval::Interval, ray::Ray, vector3::Vec3f},
     profile_scope,
     ray_hit::RayHitTest,
-    scene::{camera::Camera, sphere::Sphere, tree::SceneTree},
+    scene::{camera::Camera, tree::SceneTree},
 };
 
 pub struct Raytracer {
@@ -20,7 +18,6 @@ pub struct Raytracer {
     pixel_samples_scale: f64,
     max_ray_depth: u16,
     camera: Camera,
-    random: ThreadRng,
 }
 
 impl Raytracer {
@@ -31,24 +28,26 @@ impl Raytracer {
         max_ray_depth: u16,
     ) -> Self {
         let image_height = (image_width as f64 / aspect_ratio) as u32;
-        let mut scene_tree = SceneTree::new();
-        scene_tree.add(Sphere::new(Vec3f::new(0.0, 0.0, -1.0), 0.5));
-        scene_tree.add(Sphere::new(Vec3f::new(0.0, -100.5, -1.0), 100.0));
-
         let camera = Camera::new(Vec3f::zero(), 1.0, image_width, image_height);
 
         Self {
             image_width,
             image_height: image_height.clamp(1, u32::MAX),
-            scene_tree,
+            scene_tree: SceneTree::new(),
             background_gradient_start: Color::new(0.3, 0.6, 0.9),
             background_gradient_end: Color::new(1.0, 1.0, 1.0),
             samples_per_pixel,
             pixel_samples_scale: 1.0 / (samples_per_pixel as f64),
             max_ray_depth,
             camera,
-            random: rand::rng(),
         }
+    }
+
+    pub fn add_scene_object<T>(&mut self, object: T)
+    where
+        T: RayHitTest + 'static,
+    {
+        self.scene_tree.add(object);
     }
 
     pub fn render_image(&mut self, path: &Path) -> () {
@@ -64,6 +63,7 @@ impl Raytracer {
             image::RgbImage::new(self.image_width, self.image_height);
 
         for y in 0..self.image_height {
+            log::debug!("{}/{}", y, self.image_height - 1);
             for x in 0..self.image_width {
                 let mut color = Color::new(0.0, 0.0, 0.0);
 
@@ -99,14 +99,17 @@ impl Raytracer {
             .scene_tree
             .does_hit(ray, &Interval::new(0.001, f64::INFINITY))
         {
-            let direction =
-                ray_hit.normal() + Vec3f::random_unit(&mut self.random);
-            // Vec3f::random_on_hemisphere(&mut self.random, ray_hit.normal());
-            // TODO: no recursion?
-            return self.calculate_color(
-                &Ray::new(ray_hit.point(), direction),
-                depth - 1,
-            ) * 0.3;
+            match ray_hit.material.scatter(
+                ray,
+                ray_hit.point(),
+                ray_hit.normal(),
+            ) {
+                Some(result) => {
+                    return result.1
+                        * self.calculate_color(&result.0, depth - 1)
+                }
+                None => return Color::new(0.0, 0.0, 0.0),
+            }
         }
 
         let a: f64 = (ray.direction().unit().y() + 1.0) * 0.5;

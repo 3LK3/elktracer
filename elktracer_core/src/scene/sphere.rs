@@ -1,4 +1,5 @@
 use crate::{
+    material::Material,
     math::{interval::Interval, ray::Ray, vector3::Vec3f},
     ray_hit::{RayHitDetails, RayHitTest},
 };
@@ -6,19 +7,29 @@ use crate::{
 pub struct Sphere {
     center_position: Vec3f,
     radius: f64,
+    material: Box<dyn Material>,
 }
 
 impl Sphere {
-    pub fn new(center_position: Vec3f, radius: f64) -> Self {
+    pub fn new(
+        center_position: Vec3f,
+        radius: f64,
+        material: Box<dyn Material>,
+    ) -> Self {
         Self {
             center_position,
             radius,
+            material,
         }
     }
 }
 
 impl RayHitTest for Sphere {
-    fn does_hit(&self, ray: &Ray, ray_t: &Interval) -> Option<RayHitDetails> {
+    fn does_hit(
+        &mut self,
+        ray: &Ray,
+        ray_t: &Interval,
+    ) -> Option<RayHitDetails> {
         let origin_center = self.center_position - ray.origin();
         let a = ray.direction().magnitude_squared();
         let h = ray.direction().dot(origin_center);
@@ -46,6 +57,7 @@ impl RayHitTest for Sphere {
             root,
             ray,
             (point - self.center_position) / self.radius,
+            &mut *self.material,
         ))
     }
 }

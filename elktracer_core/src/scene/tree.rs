@@ -4,7 +4,7 @@ use crate::{
 };
 
 pub struct SceneTree {
-    objects: Vec<Box<dyn RayHitTest>>,
+    objects: Vec<Box<dyn RayHitTest + 'static>>,
 }
 
 impl SceneTree {
@@ -20,11 +20,15 @@ impl SceneTree {
 }
 
 impl RayHitTest for SceneTree {
-    fn does_hit(&self, ray: &Ray, ray_t: &Interval) -> Option<RayHitDetails> {
+    fn does_hit(
+        &mut self,
+        ray: &Ray,
+        ray_t: &Interval,
+    ) -> Option<RayHitDetails> {
         let mut hit_result: Option<RayHitDetails> = None;
         let mut closest = ray_t.max();
 
-        for object in &self.objects {
+        for object in self.objects.iter_mut() {
             if let Some(hit) =
                 object.does_hit(ray, &Interval::new(ray_t.min(), closest))
             {

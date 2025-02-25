@@ -62,6 +62,18 @@ impl AddAssign for Color {
     }
 }
 
+impl Mul for Color {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        Self {
+            r: self.r * rhs.r,
+            g: self.g * rhs.g,
+            b: self.b * rhs.b,
+        }
+    }
+}
+
 impl Mul<f64> for Color {
     type Output = Self;
 
