@@ -103,6 +103,7 @@ impl Raytracer {
                 ray,
                 ray_hit.point(),
                 ray_hit.normal(),
+                ray_hit.is_front_face(),
             ) {
                 Some(result) => {
                     return result.1

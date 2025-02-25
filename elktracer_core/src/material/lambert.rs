@@ -24,7 +24,8 @@ impl Material for LambertMaterial {
         &mut self,
         _ray: &Ray,
         hit_point: Vec3f,
-        hit_normal: Vec3f, // ray_hit: &RayHitDetails,
+        hit_normal: Vec3f,
+        _is_hit_front_face: bool,
     ) -> Option<(Ray, Color)>
     where
         Self: Sized,

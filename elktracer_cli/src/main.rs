@@ -2,7 +2,10 @@ use std::{env::current_dir, path::Path};
 
 use elktracer_core::{
     color::Color,
-    material::{lambert::LambertMaterial, metal::MetalMaterial},
+    material::{
+        lambert::LambertMaterial, metal::MetalMaterial,
+        transparent::TransparentMaterial,
+    },
     math::vector3::Vec3f,
     raytracer::Raytracer,
     scene::sphere::Sphere,
@@ -27,7 +30,8 @@ fn main() {
 
     let material_ground = LambertMaterial::new(Color::new(0.8, 0.8, 0.0));
     let material_center = LambertMaterial::new(Color::new(0.1, 0.2, 0.5));
-    let material_left = MetalMaterial::new(Color::new(0.8, 0.8, 0.8), 0.3);
+    let material_left = TransparentMaterial::new(1.5);
+    let material_bubble = TransparentMaterial::new(1.0 / 1.5);
     let material_right = MetalMaterial::new(Color::new(0.8, 0.6, 0.2), 1.0);
 
     raytracer.add_scene_object(Sphere::new(
@@ -37,19 +41,25 @@ fn main() {
     ));
 
     raytracer.add_scene_object(Sphere::new(
-        Vec3f::new(0.0, 0.0, -1.7),
+        Vec3f::new(0.0, 0.0, -1.2),
         0.5,
         Box::new(material_center),
     ));
 
     raytracer.add_scene_object(Sphere::new(
-        Vec3f::new(-1.0, 0.0, -1.5),
+        Vec3f::new(-1.0, 0.0, -1.0),
         0.5,
         Box::new(material_left),
     ));
 
     raytracer.add_scene_object(Sphere::new(
-        Vec3f::new(1.0, 0.0, -1.5),
+        Vec3f::new(-1.0, 0.0, -1.0),
+        0.4,
+        Box::new(material_bubble),
+    ));
+
+    raytracer.add_scene_object(Sphere::new(
+        Vec3f::new(1.0, 0.0, -1.0),
         0.5,
         Box::new(material_right),
     ));

@@ -63,6 +63,15 @@ impl Vec3f {
         }
     }
 
+    pub fn refract(&self, n: Vec3f, etai_over_etat: f64) -> Vec3f {
+        let cos_theta = f64::min(-self.dot(n), 1.0);
+        let r_out_perp = (*self + n * cos_theta) * etai_over_etat;
+        let r_out_parallel =
+            n * -f64::sqrt(f64::abs(1.0 - r_out_perp.magnitude_squared()));
+
+        r_out_perp + r_out_parallel
+    }
+
     pub fn magnitude(&self) -> f64 {
         f64::sqrt(self.magnitude_squared())
     }

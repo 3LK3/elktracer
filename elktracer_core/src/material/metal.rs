@@ -27,6 +27,7 @@ impl Material for MetalMaterial {
         ray: &crate::math::ray::Ray,
         hit_point: Vec3f,
         hit_normal: Vec3f,
+        _is_hit_front_face: bool,
     ) -> Option<(crate::math::ray::Ray, crate::color::Color)> {
         let reflected = ray.direction().reflect(hit_normal).unit()
             + (Vec3f::random_unit(&mut self.random) * self.fuzziness);

@@ -7,7 +7,7 @@ pub struct RayHitDetails<'a> {
     point: Vec3f,
     t: f64,
     normal: Vec3f,
-    // is_front_face: bool,
+    is_front_face: bool,
     pub material: &'a mut dyn Material,
 }
 
@@ -28,7 +28,7 @@ impl<'a> RayHitDetails<'a> {
             } else {
                 -outward_normal
             },
-            // is_front_face,
+            is_front_face,
             material,
         }
     }
@@ -43,6 +43,10 @@ impl<'a> RayHitDetails<'a> {
 
     pub fn t(&self) -> f64 {
         self.t
+    }
+
+    pub fn is_front_face(&self) -> bool {
+        self.is_front_face
     }
 }
 
