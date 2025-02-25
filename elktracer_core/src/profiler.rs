@@ -29,3 +29,13 @@ impl Drop for ScopeProfiler {
         self.stop();
     }
 }
+
+#[macro_use]
+mod macros {
+    #[macro_export]
+    macro_rules! profile_scope {
+        ($name:expr) => {
+            let _scope_profiler = $crate::profiler::ScopeProfiler::new($name);
+        };
+    }
+}
