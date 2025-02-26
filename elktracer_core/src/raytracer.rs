@@ -50,17 +50,21 @@ impl Raytracer {
         &mut self,
         path: &Path,
         camera_position: Vec3f,
-        camera_lookat: Vec3f,
+        camera_look_at: Vec3f,
         camera_up: Vec3f,
         camera_fov_vertical_degrees: f64,
+        camera_defocus_angle: f64,
+        camera_focus_distance: f64,
     ) -> () {
         profile_scope!("Raytracer::render_image");
 
         self.camera.reset_viewport(
             camera_position,
-            camera_lookat,
+            camera_look_at,
             camera_up,
             camera_fov_vertical_degrees,
+            camera_focus_distance,
+            camera_defocus_angle,
         );
 
         log::info!(

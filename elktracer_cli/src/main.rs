@@ -16,7 +16,7 @@ fn main() {
 
     let aspect_ratio: f64 = 16.0 / 9.0;
     let image_width = 400;
-    let samples_per_pixel = 20;
+    let samples_per_pixel = 50;
     let max_ray_depth = 20;
 
     let path = Path::new(&current_dir().unwrap()).join("out.png");
@@ -87,5 +87,7 @@ fn main() {
         Vec3f::new(0.0, 0.0, -1.0),
         Vec3f::new(0.0, 1.0, 0.0),
         20.0,
+        10.0,
+        3.4,
     );
 }

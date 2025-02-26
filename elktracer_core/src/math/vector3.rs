@@ -63,6 +63,19 @@ impl Vec3f {
         }
     }
 
+    pub fn random_in_unit_disk(random: &mut rand::rngs::ThreadRng) -> Self {
+        loop {
+            let p = Vec3f::new(
+                random.random_range(-1.0..=1.0),
+                random.random_range(-1.0..=1.0),
+                0.0,
+            );
+            if p.magnitude_squared() < 1.0 {
+                return p;
+            }
+        }
+    }
+
     pub fn refract(&self, n: Vec3f, etai_over_etat: f64) -> Vec3f {
         let cos_theta = f64::min(-self.dot(n), 1.0);
         let r_out_perp = (*self + n * cos_theta) * etai_over_etat;
