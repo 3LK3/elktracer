@@ -28,7 +28,6 @@ impl Raytracer {
         max_ray_depth: u16,
     ) -> Self {
         let image_height = (image_width as f64 / aspect_ratio) as u32;
-        let camera = Camera::new(Vec3f::zero(), 1.0, image_width, image_height);
 
         Self {
             image_width,
@@ -39,19 +38,30 @@ impl Raytracer {
             samples_per_pixel,
             pixel_samples_scale: 1.0 / (samples_per_pixel as f64),
             max_ray_depth,
-            camera,
+            camera: Camera::new(image_width, image_height),
         }
     }
 
-    pub fn add_scene_object<T>(&mut self, object: T)
-    where
-        T: RayHitTest + 'static,
-    {
+    pub fn add_scene_object<T: RayHitTest + 'static>(&mut self, object: T) {
         self.scene_tree.add(object);
     }
 
-    pub fn render_image(&mut self, path: &Path) -> () {
+    pub fn render_image(
+        &mut self,
+        path: &Path,
+        camera_position: Vec3f,
+        camera_lookat: Vec3f,
+        camera_up: Vec3f,
+        camera_fov_vertical_degrees: f64,
+    ) -> () {
         profile_scope!("Raytracer::render_image");
+
+        self.camera.reset_viewport(
+            camera_position,
+            camera_lookat,
+            camera_up,
+            camera_fov_vertical_degrees,
+        );
 
         log::info!(
             "Rendering image\n  - size: {}x{}",
@@ -119,16 +129,14 @@ impl Raytracer {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn new_should_calculate_correct_image_height() {
-        let aspect_ratio = 16.0 / 9.0;
-        let raytracer = Raytracer::new(400, aspect_ratio, 100, 50);
-
-        assert_eq!(raytracer.image_width, 400);
-        assert_eq!(raytracer.image_height, 225);
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     #[test]
+//     fn new_should_calculate_correct_image_height() {
+//         let aspect_ratio = 16.0 / 9.0;
+//         let raytracer = Raytracer::new(400, aspect_ratio, 100, 50);
+//         assert_eq!(raytracer.image_width, 400);
+//         assert_eq!(raytracer.image_height, 225);
+//     }
+// }

@@ -4,40 +4,27 @@ use crate::math::{ray::Ray, vector3::Vec3f};
 
 pub struct Camera {
     position: Vec3f,
+    // fov_vertical: f64,
+    image_width: u32,
+    image_height: u32,
+    // Viewport properties
     viewport_upper_left_pixel: Vec3f,
     viewport_pixel_delta_x: Vec3f,
     viewport_pixel_delta_y: Vec3f,
+    // Misc
     random: rand::rngs::ThreadRng,
 }
 
 impl Camera {
-    pub fn new(
-        position: Vec3f,
-        focal_length: f64,
-        image_width: u32,
-        image_height: u32,
-    ) -> Self {
-        let viewport_height: f64 = 2.0;
-        let viewport_width: f64 =
-            viewport_height * (image_width as f64 / image_height as f64);
-
-        let viewport_edge_x = Vec3f::new(viewport_width, 0.0, 0.0);
-        let viewport_edge_y = Vec3f::new(0.0, -viewport_height, 0.0);
-
-        let pixel_delta_x = viewport_edge_x / (image_width as f64);
-        let pixel_delta_y = viewport_edge_y / (image_height as f64);
-
-        let viewport_upper_left = position
-            - Vec3f::new(0.0, 0.0, focal_length)
-            - viewport_edge_x / 2.0
-            - viewport_edge_y / 2.0;
-
+    pub fn new(image_width: u32, image_height: u32) -> Self {
         Self {
-            position,
-            viewport_upper_left_pixel: viewport_upper_left
-                + (pixel_delta_x + pixel_delta_y) * 0.5,
-            viewport_pixel_delta_x: pixel_delta_x,
-            viewport_pixel_delta_y: pixel_delta_y,
+            position: Vec3f::zero(),
+            // fov_vertical,
+            image_width,
+            image_height,
+            viewport_upper_left_pixel: Vec3f::zero(),
+            viewport_pixel_delta_x: Vec3f::zero(),
+            viewport_pixel_delta_y: Vec3f::zero(),
             random: rand::rng(),
         }
     }
@@ -53,5 +40,45 @@ impl Camera {
             + (self.viewport_pixel_delta_y * (y as f64 + offset.1));
 
         Ray::new(self.position, pixel_sample - self.position)
+    }
+
+    pub fn reset_viewport(
+        &mut self,
+        position: Vec3f,
+        look_at: Vec3f,
+        up: Vec3f,
+        fov_vertical_degrees: f64,
+    ) {
+        let look_direction = position - look_at;
+
+        let focal_length = look_direction.magnitude();
+        let viewport_height: f64 = 2.0
+            * (fov_vertical_degrees.to_radians() / 2.0).tan()
+            * focal_length;
+        let viewport_width: f64 = viewport_height
+            * (self.image_width as f64 / self.image_height as f64);
+
+        let w = look_direction.unit();
+        let u = up.cross(w).unit();
+        let v = w.cross(u);
+
+        let viewport_edge_x = u * viewport_width;
+        let viewport_edge_y = -v * viewport_height;
+
+        let pixel_delta_x = viewport_edge_x / (self.image_width as f64);
+        let pixel_delta_y = viewport_edge_y / (self.image_height as f64);
+
+        let viewport_upper_left = position
+            - (w * focal_length)
+            - viewport_edge_x / 2.0
+            - viewport_edge_y / 2.0;
+
+        let viewport_ul =
+            viewport_upper_left + (pixel_delta_x + pixel_delta_y) * 0.5;
+
+        self.viewport_upper_left_pixel = viewport_ul;
+        self.viewport_pixel_delta_x = pixel_delta_x;
+        self.viewport_pixel_delta_y = pixel_delta_y;
+        self.position = position;
     }
 }

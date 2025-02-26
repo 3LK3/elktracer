@@ -88,6 +88,14 @@ impl Vec3f {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
 
+    pub fn cross(&self, other: Vec3f) -> Vec3f {
+        Self {
+            x: self.y * other.z - self.z * other.y,
+            y: self.z * other.x - self.x * other.z,
+            z: self.x * other.y - self.y * other.x,
+        }
+    }
+
     pub fn is_near_zero(&self) -> bool {
         f64::abs(self.x) < 1e-8
             && f64::abs(self.y) < 1e-8

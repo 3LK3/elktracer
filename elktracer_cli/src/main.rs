@@ -15,7 +15,7 @@ fn main() {
     elktracer_core::logging::initialize();
 
     let aspect_ratio: f64 = 16.0 / 9.0;
-    let image_width = 600;
+    let image_width = 400;
     let samples_per_pixel = 20;
     let max_ray_depth = 20;
 
@@ -27,6 +27,23 @@ fn main() {
         samples_per_pixel,
         max_ray_depth,
     );
+
+    // let material_left = LambertMaterial::new(Color::new(0.1, 0.1, 0.9));
+    // let material_right = LambertMaterial::new(Color::new(0.9, 0.1, 0.1));
+
+    // let radius = f64::cos(PI / 4.0);
+
+    // raytracer.add_scene_object(Sphere::new(
+    //     Vec3f::new(-radius, 0.0, -1.0),
+    //     radius,
+    //     Box::new(material_left),
+    // ));
+
+    // raytracer.add_scene_object(Sphere::new(
+    //     Vec3f::new(radius, 0.0, -1.0),
+    //     radius,
+    //     Box::new(material_right),
+    // ));
 
     let material_ground = LambertMaterial::new(Color::new(0.8, 0.8, 0.0));
     let material_center = LambertMaterial::new(Color::new(0.1, 0.2, 0.5));
@@ -64,5 +81,11 @@ fn main() {
         Box::new(material_right),
     ));
 
-    raytracer.render_image(&path);
+    raytracer.render_image(
+        &path,
+        Vec3f::new(-2.0, 2.0, 1.0),
+        Vec3f::new(0.0, 0.0, -1.0),
+        Vec3f::new(0.0, 1.0, 0.0),
+        20.0,
+    );
 }

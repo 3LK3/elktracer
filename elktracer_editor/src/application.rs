@@ -1,7 +1,6 @@
-use std::{env::current_dir, error::Error, path::Path};
+use std::error::Error;
 
-use elktracer_core::raytracer::Raytracer;
-use imgui_winit_support::{HiDpiMode, WinitPlatform};
+use imgui_winit_support::{HiDpiMode, WinitPlatform}; 
 use winit::{
     dpi::{LogicalSize, PhysicalSize},
     event::{Event, WindowEvent},
@@ -93,13 +92,13 @@ impl Application for EditorApplication {
                 ui.text_wrapped("Hello world!");
                 if ui.button("Generate image") {
                     log::info!("Generating image ...");
-                    let aspect_ratio: f64 = 16.0 / 9.0;
-                    let image_width = 600;
-                    let mut raytracer =
-                        Raytracer::new(image_width, aspect_ratio, 10, 10);
-                    raytracer.render_image(
-                        &Path::new(&current_dir().unwrap()).join("out.png"),
-                    );
+                    // let aspect_ratio: f64 = 16.0 / 9.0;
+                    // let image_width = 600;
+                    // let mut raytracer =
+                    //     Raytracer::new(image_width, aspect_ratio, 10, 10);
+                    // raytracer.render_image(
+                    //     &Path::new(&current_dir().unwrap()).join("out.png"),
+                    // );
                 }
             });
 
