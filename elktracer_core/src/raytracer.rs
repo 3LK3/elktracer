@@ -1,5 +1,3 @@
-use std::u32;
-
 use image::RgbImage;
 
 use crate::{
@@ -99,7 +97,7 @@ impl Raytracer {
     }
 
     fn calculate_color(&mut self, ray: &Ray, depth: u16) -> Color {
-        if depth <= 0 {
+        if depth == 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
 

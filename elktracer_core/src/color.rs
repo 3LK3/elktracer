@@ -34,12 +34,6 @@ impl Color {
             0.0
         }
     }
-
-    // fn clamp(&mut self) {
-    //     self.r = self.r.clamp(0.0, 1.0);
-    //     self.g = self.g.clamp(0.0, 1.0);
-    //     self.b = self.b.clamp(0.0, 1.0);
-    // }
 }
 
 impl Add for Color {

@@ -19,6 +19,12 @@ impl SceneTree {
     }
 }
 
+impl Default for SceneTree {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RayHitTest for SceneTree {
     fn does_hit(
         &mut self,
