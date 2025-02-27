@@ -1,8 +1,11 @@
 use std::{
     error::Error,
     ffi::{CStr, CString},
-    os::raw::{c_char, c_void},
+    os::raw::c_char,
 };
+
+#[cfg(all(debug_assertions))]
+use std::os::raw::c_void;
 
 use ash::{ext::debug_utils, khr::surface, vk, Entry};
 use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
@@ -50,18 +53,18 @@ impl VulkanContext {
         let entry = Entry::linked();
 
         // log::trace!("Creating vulkan instance");
-        let (instance, debug_utils, debug_utils_messenger) =
-            create_instance(&entry, &window, name)
-                .expect("Unable to create vulkan instance");
+        let created_instance = create_instance(&entry, &window, name)
+            .expect("Unable to create vulkan instance");
 
         // log::trace!("Creating vulkan surface");
-        let surface = surface::Instance::new(&entry, &instance);
+        let surface =
+            surface::Instance::new(&entry, &created_instance.instance);
 
         // log::trace!("Creating vulkan khr surface");
         let surface_khr = unsafe {
             ash_window::create_surface(
                 &entry,
-                &instance,
+                &created_instance.instance,
                 window.display_handle().unwrap().into(),
                 window.window_handle().unwrap().into(),
                 None,
@@ -70,12 +73,16 @@ impl VulkanContext {
         };
 
         let (physical_device, graphics_queue_index, present_queue_index) =
-            pick_physical_device(&instance, &surface, surface_khr)
-                .expect("Unable to pick physical device");
+            pick_physical_device(
+                &created_instance.instance,
+                &surface,
+                surface_khr,
+            )
+            .expect("Unable to pick physical device");
 
         let (device, graphics_queue, present_queue) =
             create_logical_device_with_queue(
-                &instance,
+                &created_instance.instance,
                 physical_device,
                 graphics_queue_index,
                 present_queue_index,
@@ -90,7 +97,7 @@ impl VulkanContext {
         };
 
         Ok(Self {
-            instance,
+            instance: created_instance.instance,
             surface,
             surface_khr,
             physical_device,
@@ -101,9 +108,9 @@ impl VulkanContext {
             present_queue,
             command_pool,
             #[cfg(all(debug_assertions))]
-            debug_utils,
+            debug_utils: created_instance.debug_utils,
             #[cfg(all(debug_assertions))]
-            debug_utils_messenger,
+            debug_utils_messenger: created_instance.debug_utils_messenger,
         })
     }
 
@@ -122,6 +129,7 @@ impl Drop for VulkanContext {
             self.device.destroy_command_pool(self.command_pool, None);
             self.device.destroy_device(None);
             self.surface.destroy_surface(self.surface_khr, None);
+            #[cfg(all(debug_assertions))]
             self.debug_utils.destroy_debug_utils_messenger(
                 self.debug_utils_messenger,
                 None,
@@ -131,18 +139,19 @@ impl Drop for VulkanContext {
     }
 }
 
+struct CreatedInstance {
+    instance: ash::Instance,
+    #[cfg(all(debug_assertions))]
+    debug_utils: debug_utils::Instance,
+    #[cfg(all(debug_assertions))]
+    debug_utils_messenger: vk::DebugUtilsMessengerEXT,
+}
+
 fn create_instance(
     entry: &Entry,
     window: &Window,
     title: &str,
-) -> Result<
-    (
-        ash::Instance,
-        debug_utils::Instance,
-        vk::DebugUtilsMessengerEXT,
-    ),
-    Box<dyn Error>,
-> {
+) -> Result<CreatedInstance, Box<dyn Error>> {
     profile_scope!("Creating vulkan instance");
 
     let app_name = CString::new(title)?;
@@ -187,12 +196,22 @@ fn create_instance(
                 | vk::DebugUtilsMessageTypeFlagsEXT::VALIDATION,
         )
         .pfn_user_callback(Some(vulkan_debug_callback));
+
+    #[cfg(all(debug_assertions))]
     let debug_utils = debug_utils::Instance::new(entry, &instance);
+
+    #[cfg(all(debug_assertions))]
     let debug_utils_messenger = unsafe {
         debug_utils.create_debug_utils_messenger(&create_info, None)?
     };
 
-    Ok((instance, debug_utils, debug_utils_messenger))
+    Ok(CreatedInstance {
+        instance,
+        #[cfg(all(debug_assertions))]
+        debug_utils,
+        #[cfg(all(debug_assertions))]
+        debug_utils_messenger,
+    })
 }
 
 /// Check if the required validation set in `REQUIRED_LAYERS`
@@ -386,6 +405,7 @@ fn create_logical_device_with_queue(
     Ok((device, graphics_queue, present_queue))
 }
 
+#[cfg(all(debug_assertions))]
 unsafe extern "system" fn vulkan_debug_callback(
     flag: vk::DebugUtilsMessageSeverityFlagsEXT,
     typ: vk::DebugUtilsMessageTypeFlagsEXT,

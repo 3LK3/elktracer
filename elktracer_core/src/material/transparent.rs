@@ -1,20 +1,14 @@
-use rand::Rng;
-
-use crate::{color::Color, math::ray::Ray};
+use crate::{color::Color, math::ray::Ray, random};
 
 use super::Material;
 
 pub struct TransparentMaterial {
     refraction_index: f64,
-    random: rand::rngs::ThreadRng,
 }
 
 impl TransparentMaterial {
     pub fn new(refraction_index: f64) -> Self {
-        Self {
-            refraction_index,
-            random: rand::rng(),
-        }
+        Self { refraction_index }
     }
 
     fn get_reflectance(&self, cosine: f64, refraction_index: f64) -> f64 {
@@ -46,8 +40,7 @@ impl Material for TransparentMaterial {
         let cannot_refract = ri * sin_theta > 1.0;
 
         let direction = if cannot_refract
-            || self.get_reflectance(cos_theta, ri)
-                > self.random.random_range(0.0..=1.0)
+            || self.get_reflectance(cos_theta, ri) > random::random_f64_0_1()
         {
             unit_direction.reflect(hit_normal)
         } else {

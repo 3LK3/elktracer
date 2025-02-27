@@ -33,9 +33,10 @@ impl RayHitTest for Sphere {
         let origin_center = self.center_position - ray.origin();
         let a = ray.direction().magnitude_squared();
         let h = ray.direction().dot(origin_center);
-        let c = origin_center.magnitude_squared() - self.radius * self.radius;
 
-        let discriminant = h * h - a * c;
+        let discriminant = h * h
+            - a * (origin_center.magnitude_squared()
+                - self.radius * self.radius);
         if discriminant < 0.0 {
             return None;
         }

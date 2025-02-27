@@ -7,15 +7,11 @@ use super::Material;
 
 pub struct LambertMaterial {
     albedo: Color,
-    random: rand::rngs::ThreadRng,
 }
 
 impl LambertMaterial {
     pub fn new(albedo: Color) -> Self {
-        Self {
-            albedo,
-            random: rand::rng(),
-        }
+        Self { albedo }
     }
 }
 
@@ -30,8 +26,7 @@ impl Material for LambertMaterial {
     where
         Self: Sized,
     {
-        let mut scatter_direction =
-            hit_normal + Vec3f::random_unit(&mut self.random);
+        let mut scatter_direction = hit_normal + Vec3f::random_unit();
 
         if scatter_direction.is_near_zero() {
             scatter_direction = hit_normal;

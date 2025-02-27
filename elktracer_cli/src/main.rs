@@ -15,11 +15,9 @@ fn main() {
     elktracer_core::logging::initialize();
 
     let aspect_ratio: f64 = 16.0 / 9.0;
-    let image_width = 400;
-    let samples_per_pixel = 50;
-    let max_ray_depth = 20;
-
-    let path = Path::new(&current_dir().unwrap()).join("out.png");
+    let image_width = 1280;
+    let samples_per_pixel = 100;
+    let max_ray_depth = 100;
 
     let mut raytracer = Raytracer::new(
         image_width,
@@ -58,36 +56,46 @@ fn main() {
     ));
 
     raytracer.add_scene_object(Sphere::new(
-        Vec3f::new(0.0, 0.0, -1.2),
+        Vec3f::new(1.0, 0.0, 1.2),
         0.5,
         Box::new(material_center),
     ));
 
     raytracer.add_scene_object(Sphere::new(
-        Vec3f::new(-1.0, 0.0, -1.0),
+        Vec3f::new(3.0, 0.5, 1.0),
         0.5,
         Box::new(material_left),
     ));
 
     raytracer.add_scene_object(Sphere::new(
-        Vec3f::new(-1.0, 0.0, -1.0),
+        Vec3f::new(3.0, 0.5, 1.0),
         0.4,
         Box::new(material_bubble),
     ));
 
     raytracer.add_scene_object(Sphere::new(
-        Vec3f::new(1.0, 0.0, -1.0),
+        Vec3f::new(1.0, 0.2, -2.0),
         0.5,
         Box::new(material_right),
     ));
 
-    raytracer.render_image(
-        &path,
-        Vec3f::new(-2.0, 2.0, 1.0),
-        Vec3f::new(0.0, 0.0, -1.0),
+    let image = raytracer.render_image(
+        Vec3f::new(12.0, 2.0, 3.0),
+        Vec3f::new(0.0, 0.0, 0.0),
         Vec3f::new(0.0, 1.0, 0.0),
-        20.0,
+        15.0,
+        0.6,
         10.0,
-        3.4,
     );
+
+    let path = Path::new(&current_dir().unwrap()).join("out.png");
+    match image.save_with_format(&path, elktracer_core::image::ImageFormat::Png)
+    {
+        Ok(_) => {
+            log::info!("Successfully rendered to {:?}", path);
+        }
+        Err(err) => {
+            log::error!("Error rendering image: {}", err);
+        }
+    }
 }

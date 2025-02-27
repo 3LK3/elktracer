@@ -2,10 +2,13 @@ pub mod color;
 pub mod material;
 pub mod math;
 pub mod profiler;
+pub mod random;
 pub mod ray_hit;
 pub mod raytracer;
 pub mod scene;
 pub mod utils;
+
+pub use image;
 
 pub mod logging {
     pub fn initialize() {

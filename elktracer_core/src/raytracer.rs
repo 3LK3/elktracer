@@ -1,4 +1,6 @@
-use std::{path::Path, u32};
+use std::u32;
+
+use image::RgbImage;
 
 use crate::{
     color::Color,
@@ -48,14 +50,13 @@ impl Raytracer {
 
     pub fn render_image(
         &mut self,
-        path: &Path,
         camera_position: Vec3f,
         camera_look_at: Vec3f,
         camera_up: Vec3f,
         camera_fov_vertical_degrees: f64,
         camera_defocus_angle: f64,
         camera_focus_distance: f64,
-    ) -> () {
+    ) -> RgbImage {
         profile_scope!("Raytracer::render_image");
 
         self.camera.reset_viewport(
@@ -77,7 +78,7 @@ impl Raytracer {
             image::RgbImage::new(self.image_width, self.image_height);
 
         for y in 0..self.image_height {
-            log::debug!("{}/{}", y, self.image_height - 1);
+            // log::debug!("{}/{}", y, self.image_height - 1);
             for x in 0..self.image_width {
                 let mut color = Color::new(0.0, 0.0, 0.0);
 
@@ -94,14 +95,7 @@ impl Raytracer {
             }
         }
 
-        match rgb_image.save_with_format(path, image::ImageFormat::Png) {
-            Ok(_) => {
-                log::info!("Successfully rendered to {:?}", path);
-            }
-            Err(err) => {
-                log::error!("Error rendering image: {}", err);
-            }
-        }
+        rgb_image
     }
 
     fn calculate_color(&mut self, ray: &Ray, depth: u16) -> Color {
@@ -133,14 +127,15 @@ impl Raytracer {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     #[test]
-//     fn new_should_calculate_correct_image_height() {
-//         let aspect_ratio = 16.0 / 9.0;
-//         let raytracer = Raytracer::new(400, aspect_ratio, 100, 50);
-//         assert_eq!(raytracer.image_width, 400);
-//         assert_eq!(raytracer.image_height, 225);
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_should_calculate_correct_image_height() {
+        let aspect_ratio = 16.0 / 9.0;
+        let raytracer = Raytracer::new(400, aspect_ratio, 100, 50);
+        assert_eq!(raytracer.image_width, 400);
+        assert_eq!(raytracer.image_height, 225);
+    }
+}

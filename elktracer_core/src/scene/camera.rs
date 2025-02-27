@@ -1,6 +1,7 @@
-use rand::Rng;
-
-use crate::math::{ray::Ray, vector3::Vec3f};
+use crate::{
+    math::{ray::Ray, vector3::Vec3f},
+    random,
+};
 
 pub struct Camera {
     position: Vec3f,
@@ -14,8 +15,6 @@ pub struct Camera {
     viewport_upper_left_pixel: Vec3f,
     viewport_pixel_delta_x: Vec3f,
     viewport_pixel_delta_y: Vec3f,
-    // Misc
-    random: rand::rngs::ThreadRng,
 }
 
 impl Camera {
@@ -30,14 +29,14 @@ impl Camera {
             viewport_upper_left_pixel: Vec3f::zero(),
             viewport_pixel_delta_x: Vec3f::zero(),
             viewport_pixel_delta_y: Vec3f::zero(),
-            random: rand::rng(),
         }
     }
 
     pub fn get_ray(&mut self, x: u32, y: u32) -> Ray {
         let offset = (
-            self.random.random_range(-0.5..=0.5),
-            self.random.random_range(-0.5..=0.5),
+            // -0.5..0.5
+            random::random_f64_0_1() - 0.5,
+            random::random_f64_0_1() - 0.5,
         );
 
         let pixel_sample = self.viewport_upper_left_pixel
@@ -54,7 +53,7 @@ impl Camera {
     }
 
     fn defocus_disk_sample(&mut self) -> Vec3f {
-        let p = Vec3f::random_in_unit_disk(&mut self.random);
+        let p = Vec3f::random_in_unit_disk();
         self.position
             + (self.defocus_disk_x * p.x())
             + (self.defocus_disk_y * p.y())

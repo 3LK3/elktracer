@@ -1,0 +1,12 @@
+[package]
+name = "elktracer_benchmarks"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+elktracer_core = { path = "../elktracer_core" }
+criterion = "0.5.1"
+
+[[bench]]
+name = "render_image"
+harness = false
