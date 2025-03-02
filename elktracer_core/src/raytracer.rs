@@ -1,5 +1,3 @@
-use image::RgbImage;
-
 use crate::{
     color::Color,
     math::{interval::Interval, ray::Ray, vector3::Vec3f},
@@ -7,6 +5,104 @@ use crate::{
     ray_hit::RayHitTest,
     scene::{camera::Camera, tree::SceneTree},
 };
+
+pub mod image {
+    use image::{ImageBuffer, ImageError};
+
+    pub struct Rgba {
+        r: u8,
+        g: u8,
+        b: u8,
+        a: u8,
+    }
+
+    impl Rgba {
+        pub fn new(r: u8, g: u8, b: u8, a: u8) -> Self {
+            Self { r, g, b, a }
+        }
+    }
+
+    pub struct Image {
+        width: u32,
+        height: u32,
+        pixel_data: Vec<u8>,
+        channels: u32,
+    }
+
+    impl Image {
+        pub fn new(width: u32, height: u32) -> Self {
+            let channels = 4;
+            let pixel_data_length =
+                Self::assert_usize(width * height * channels);
+            log::trace!(
+                "Image :: new :: {}x{} :: {} channels :: pixel_data [{}]",
+                width,
+                height,
+                channels,
+                pixel_data_length
+            );
+            Self {
+                width,
+                height,
+                pixel_data: vec![0; pixel_data_length],
+                channels,
+            }
+        }
+
+        pub fn set_pixel(&mut self, x: u32, y: u32, rgba: Rgba) {
+            if x >= self.width || y >= self.height {
+                log::warn!(
+                    "Pixel coordinated out of bounds. Given x={} and y={}, image width={} and height={}. Pixel data not updated",
+                    x,
+                    y,
+                    self.width,
+                    self.height
+                );
+                return;
+            }
+
+            let index = ((y * self.width + x) * self.channels) as usize;
+            self.pixel_data[index] = rgba.r;
+            self.pixel_data[index + 1] = rgba.g;
+            self.pixel_data[index + 2] = rgba.b;
+            self.pixel_data[index + 3] = rgba.a;
+        }
+
+        pub fn data(&self) -> &[u8] {
+            &self.pixel_data
+        }
+
+        pub fn save<P: AsRef<std::path::Path>>(
+            &self,
+            path: P,
+            format: image::ImageFormat,
+        ) -> Result<(), ImageError> {
+            let buffer: image::RgbaImage = ImageBuffer::from_vec(
+                self.width,
+                self.height,
+                self.pixel_data.clone(),
+            )
+            .expect("Failed to create image buffer from vector");
+
+            buffer.save_with_format(path, format)
+        }
+
+        pub fn width(&self) -> u32 {
+            self.width
+        }
+
+        pub fn height(&self) -> u32 {
+            self.height
+        }
+
+        fn assert_usize(value: u32) -> usize {
+            match usize::try_from(value) {
+                Ok(result) => result,
+                Err(_) => panic!("Unable to convert u32 '{}' to usize", value),
+            }
+        }
+    }
+}
 
 pub struct Raytracer {
     scene_tree: SceneTree,
@@ -45,7 +141,7 @@ impl Raytracer {
         options: &CameraRenderOptions,
         samples_per_pixel: u16,
         max_ray_depth: u16,
-    ) -> RgbImage {
+    ) -> image::Image {
         profile_scope!("Raytracer::render_image");
 
         self.camera.update_viewport(options);
@@ -58,7 +154,7 @@ impl Raytracer {
             self.camera.image_height()
         );
 
-        let mut rgb_image = image::RgbImage::new(
+        let mut rgb_image = image::Image::new(
             self.camera.image_width(),
             self.camera.image_height(),
         );
@@ -73,11 +169,8 @@ impl Raytracer {
                     color += self.calculate_color(ray, max_ray_depth);
                 }
 
-                rgb_image.put_pixel(
-                    x,
-                    y,
-                    (color * pixel_samples_scale).as_rgb(),
-                );
+                let color1 = color * pixel_samples_scale;
+                rgb_image.set_pixel(x, y, color1.as_rgba());
             }
         }
 

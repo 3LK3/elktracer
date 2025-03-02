@@ -91,8 +91,8 @@ fn main() {
     );
 
     let path = Path::new(&current_dir().unwrap()).join("out.png");
-    match image.save_with_format(&path, elktracer_core::image::ImageFormat::Png)
-    {
+
+    match image.save(&path, elktracer_core::image::ImageFormat::Png) {
         Ok(_) => {
             log::info!("Successfully rendered to {:?}", path);
         }

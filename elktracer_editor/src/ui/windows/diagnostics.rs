@@ -1,4 +1,4 @@
-use elkengine_core::imgui;
+use elkengine_core::{glow, imgui};
 
 use super::UiWindow;
 
@@ -29,6 +29,8 @@ impl UiWindow for DiagnosticsWindow {
         &mut self,
         delta_time: std::time::Duration,
         ui: &mut elkengine_core::imgui::Ui,
+        _glow_context: &glow::Context,
+        _textures: &mut imgui::Textures<glow::Texture>,
     ) {
         self.frame_count += 1;
         self.current_time_seconds += delta_time.as_secs_f64();

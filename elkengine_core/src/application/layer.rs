@@ -1,6 +1,13 @@
+use imgui_glow_renderer::glow;
+
 pub trait Layer {
     fn update(&mut self, delta_time: std::time::Duration);
-    fn update_imgui(&mut self, ui: &mut imgui::Ui);
+    fn update_imgui(
+        &mut self,
+        ui: &mut imgui::Ui,
+        glow_context: &glow::Context,
+        textures: &mut imgui::Textures<glow::Texture>,
+    );
 
     fn on_attached(&self);
     fn on_detached(&self);

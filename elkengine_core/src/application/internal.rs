@@ -10,9 +10,11 @@ pub struct InternalApplication {
     window: winit::window::Window,
     gl_surface: glutin::surface::Surface<glutin::surface::WindowSurface>,
     gl_context: glutin::context::PossiblyCurrentContext,
-    gl_imgui_renderer: imgui_glow_renderer::AutoRenderer,
+    gl_imgui_renderer: imgui_glow_renderer::Renderer,
+    glow_context: glow::Context,
     imgui_context: imgui::Context,
     winit_platform: imgui_winit_support::WinitPlatform,
+    textures: imgui::Textures<glow::Texture>,
 }
 
 impl InternalApplication {
@@ -33,7 +35,7 @@ impl InternalApplication {
 
         let surface_attributes =
             SurfaceAttributesBuilder::<WindowSurface>::new()
-                // .with_srgb(Some(true))
+                //.with_srgb(Some(true))
                 .build(
                     raw_window_handle.unwrap(),
                     std::num::NonZeroU32::new(Self::INITIAL_WINDOW_SIZE.width)
@@ -63,19 +65,27 @@ impl InternalApplication {
             super::imgui::create_context(&window)
                 .expect("Failed to initialize imgui");
 
-        let renderer = imgui_glow_renderer::AutoRenderer::new(
-            glow_context,
+        let mut textures = imgui::Textures::<glow::Texture>::default();
+
+        let renderer = imgui_glow_renderer::Renderer::new(
+            &glow_context,
             &mut imgui_context,
+            &mut textures,
+            false,
         )
-        .expect("Failed to create renderer");
+        .expect("Failed to create imgui_glow_renderer");
+
+        unsafe { glow_context.enable(glow::FRAMEBUFFER_SRGB) };
 
         Self {
             window,
             gl_surface: surface,
             gl_context: context,
             gl_imgui_renderer: renderer,
+            glow_context,
             imgui_context,
             winit_platform,
+            textures,
         }
     }
 
@@ -95,12 +105,8 @@ impl InternalApplication {
         self.imgui_context.io_mut().update_delta_time(delta_time);
 
         unsafe {
-            self.gl_imgui_renderer
-                .gl_context()
-                .clear_color(0.5, 0.5, 0.1, 1.0);
-            self.gl_imgui_renderer
-                .gl_context()
-                .clear(glow::COLOR_BUFFER_BIT);
+            // self.glow_context.clear_color(0.5, 0.5, 0.1, 1.0);
+            self.glow_context.clear(glow::COLOR_BUFFER_BIT);
         }
 
         for layer in layer_stack.iter_mut() {
@@ -111,14 +117,13 @@ impl InternalApplication {
         ui.dockspace_over_main_viewport();
 
         for layer in layer_stack.iter_mut() {
-            layer.update_imgui(ui);
+            layer.update_imgui(ui, &self.glow_context, &mut self.textures);
         }
 
         self.winit_platform.prepare_render(ui, &self.window);
-
         let draw_data = self.imgui_context.render();
         self.gl_imgui_renderer
-            .render(draw_data)
+            .render(&self.glow_context, &self.textures, draw_data)
             .expect("Error rendering imgui");
 
         self.gl_surface
@@ -163,7 +168,9 @@ impl InternalApplication {
         );
     }
 
-    pub fn on_exit(&self) {}
+    pub fn on_exit(&mut self) {
+        self.gl_imgui_renderer.destroy(&self.glow_context);
+    }
 
     fn window_attributes() -> winit::window::WindowAttributes {
         winit::window::WindowAttributes::default()

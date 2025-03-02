@@ -1,4 +1,5 @@
 pub mod color;
+pub mod error;
 pub mod material;
 pub mod math;
 pub mod profiler;
@@ -9,6 +10,8 @@ pub mod scene;
 pub mod utils;
 
 pub use image;
+
+pub use self::error::{Error, Result};
 
 pub mod logging {
     pub fn initialize() {

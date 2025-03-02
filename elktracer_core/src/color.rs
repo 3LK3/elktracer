@@ -1,8 +1,6 @@
 use std::ops::{Add, AddAssign, Mul};
 
-use image::Rgb;
-
-use crate::math::interval::Interval;
+use crate::{math::interval::Interval, raytracer};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Color {
@@ -17,14 +15,25 @@ impl Color {
         Self { r, g, b }
     }
 
-    pub fn as_rgb(&self) -> Rgb<u8> {
+    pub fn as_rgb(&self) -> image::Rgb<u8> {
         let intensity = Interval::new(0.0, 0.999);
 
-        Rgb([
+        image::Rgb([
             (256.0 * intensity.clamp(Self::linear_to_gamma(self.r))) as u8,
             (256.0 * intensity.clamp(Self::linear_to_gamma(self.g))) as u8,
             (256.0 * intensity.clamp(Self::linear_to_gamma(self.b))) as u8,
         ])
+    }
+
+    pub fn as_rgba(&self) -> raytracer::image::Rgba {
+        let intensity = Interval::new(0.0, 0.999);
+
+        raytracer::image::Rgba::new(
+            (256.0 * intensity.clamp(Self::linear_to_gamma(self.r))) as u8,
+            (256.0 * intensity.clamp(Self::linear_to_gamma(self.g))) as u8,
+            (256.0 * intensity.clamp(Self::linear_to_gamma(self.b))) as u8,
+            255,
+        )
     }
 
     fn linear_to_gamma(linear_component: f64) -> f64 {
