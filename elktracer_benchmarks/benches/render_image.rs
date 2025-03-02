@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use elktracer_core::{
     color::Color,
     material::{
@@ -8,7 +8,7 @@ use elktracer_core::{
         transparent::TransparentMaterial,
     },
     math::vector3::Vec3f,
-    raytracer::Raytracer,
+    raytracer::{CameraRenderOptions, Raytracer},
     scene::sphere::Sphere,
 };
 
@@ -18,12 +18,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     let samples_per_pixel = 20;
     let max_ray_depth = 20;
 
-    let mut raytracer = Raytracer::new(
-        image_width,
-        aspect_ratio,
-        samples_per_pixel,
-        max_ray_depth,
-    );
+    let mut raytracer = Raytracer::new();
 
     let material_ground = LambertMaterial::new(Color::new(0.8, 0.8, 0.0));
     let material_center = LambertMaterial::new(Color::new(0.1, 0.2, 0.5));
@@ -61,6 +56,17 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         Box::new(material_right),
     ));
 
+    let camera_options = CameraRenderOptions {
+        aspect_ratio,
+        image_width,
+        position: Vec3f::new(-2.0, 2.0, 1.0),
+        look_at: Vec3f::new(0.0, 0.0, -1.0),
+        up: Vec3f::new(0.0, 1.0, 0.0),
+        fov_vertical_degrees: 15.0,
+        defocus_angle: 0.6,
+        focus_distance: 10.0,
+    };
+
     let mut group = c.benchmark_group("sample-size-example");
     group.warm_up_time(Duration::from_secs(5));
     group.sampling_mode(criterion::SamplingMode::Flat);
@@ -69,12 +75,9 @@ pub fn criterion_benchmark(c: &mut Criterion) {
     group.bench_function("render_image", |b| {
         b.iter(|| {
             raytracer.render_image(
-                Vec3f::new(-2.0, 2.0, 1.0),
-                Vec3f::new(0.0, 0.0, -1.0),
-                Vec3f::new(0.0, 1.0, 0.0),
-                20.0,
-                10.0,
-                3.4,
+                &camera_options,
+                samples_per_pixel,
+                max_ray_depth,
             )
         })
     });

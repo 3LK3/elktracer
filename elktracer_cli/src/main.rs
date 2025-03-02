@@ -7,24 +7,14 @@ use elktracer_core::{
         transparent::TransparentMaterial,
     },
     math::vector3::Vec3f,
-    raytracer::Raytracer,
+    raytracer::{CameraRenderOptions, Raytracer},
     scene::sphere::Sphere,
 };
 
 fn main() {
     elktracer_core::logging::initialize();
 
-    let aspect_ratio: f64 = 16.0 / 9.0;
-    let image_width = 1280;
-    let samples_per_pixel = 100;
-    let max_ray_depth = 100;
-
-    let mut raytracer = Raytracer::new(
-        image_width,
-        aspect_ratio,
-        samples_per_pixel,
-        max_ray_depth,
-    );
+    let mut raytracer = Raytracer::new();
 
     // let material_left = LambertMaterial::new(Color::new(0.1, 0.1, 0.9));
     // let material_right = LambertMaterial::new(Color::new(0.9, 0.1, 0.1));
@@ -79,13 +69,25 @@ fn main() {
         Box::new(material_right),
     ));
 
+    let camera_options = CameraRenderOptions {
+        aspect_ratio: 16.0 / 9.0,
+        // image_width: 1280,
+        image_width: 600,
+        position: Vec3f::new(12.0, 2.0, 3.0),
+        look_at: Vec3f::new(0.0, 0.0, 0.0),
+        up: Vec3f::new(0.0, 1.0, 0.0),
+        fov_vertical_degrees: 15.0,
+        defocus_angle: 0.6,
+        focus_distance: 10.0,
+    };
+
+    let samples_per_pixel = 50;
+    let max_ray_depth = 50;
+
     let image = raytracer.render_image(
-        Vec3f::new(12.0, 2.0, 3.0),
-        Vec3f::new(0.0, 0.0, 0.0),
-        Vec3f::new(0.0, 1.0, 0.0),
-        15.0,
-        0.6,
-        10.0,
+        &camera_options,
+        samples_per_pixel,
+        max_ray_depth,
     );
 
     let path = Path::new(&current_dir().unwrap()).join("out.png");

@@ -1,6 +1,7 @@
 use crate::{
     math::{ray::Ray, vector3::Vec3f},
     random,
+    raytracer::CameraRenderOptions,
 };
 
 pub struct Camera {
@@ -18,11 +19,11 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(image_width: u32, image_height: u32) -> Self {
+    pub fn new() -> Self {
         Self {
             position: Vec3f::zero(),
-            image_width,
-            image_height,
+            image_width: 0,
+            image_height: 0,
             defocus_angle: 0.0,
             defocus_disk_x: Vec3f::zero(),
             defocus_disk_y: Vec3f::zero(),
@@ -59,25 +60,21 @@ impl Camera {
             + (self.defocus_disk_y * p.y())
     }
 
-    pub fn reset_viewport(
-        &mut self,
-        position: Vec3f,
-        look_at: Vec3f,
-        up: Vec3f,
-        fov_vertical_degrees: f64,
-        focus_distance: f64,
-        defocus_angle: f64,
-    ) {
-        let look_direction = position - look_at;
+    pub fn update_viewport(&mut self, options: &CameraRenderOptions) {
+        self.image_width = options.image_width;
+        self.image_height =
+            (options.image_width as f64 / options.aspect_ratio) as u32;
+
+        let look_direction = options.position - options.look_at;
 
         let viewport_height: f64 = 2.0
-            * (fov_vertical_degrees.to_radians() / 2.0).tan()
-            * focus_distance;
+            * (options.fov_vertical_degrees.to_radians() / 2.0).tan()
+            * options.focus_distance;
         let viewport_width: f64 = viewport_height
             * (self.image_width as f64 / self.image_height as f64);
 
         let w = look_direction.unit();
-        let u = up.cross(w).unit();
+        let u = options.up.cross(w).unit();
         let v = w.cross(u);
 
         let viewport_edge_x = u * viewport_width;
@@ -86,8 +83,8 @@ impl Camera {
         let pixel_delta_x = viewport_edge_x / (self.image_width as f64);
         let pixel_delta_y = viewport_edge_y / (self.image_height as f64);
 
-        let viewport_upper_left = position
-            - (w * focus_distance)
+        let viewport_upper_left = options.position
+            - (w * options.focus_distance)
             - viewport_edge_x / 2.0
             - viewport_edge_y / 2.0;
 
@@ -96,13 +93,27 @@ impl Camera {
         self.viewport_pixel_delta_x = pixel_delta_x;
         self.viewport_pixel_delta_y = pixel_delta_y;
 
-        let defocus_radius =
-            focus_distance * (defocus_angle / 2.0).to_radians().tan();
+        let defocus_radius = options.focus_distance
+            * (options.defocus_angle / 2.0).to_radians().tan();
 
         self.defocus_disk_x = u * defocus_radius;
         self.defocus_disk_x = v * defocus_radius;
-        self.defocus_angle = defocus_angle;
+        self.defocus_angle = options.defocus_angle;
 
-        self.position = position;
+        self.position = options.position;
+    }
+
+    pub fn image_width(&self) -> u32 {
+        self.image_width
+    }
+
+    pub fn image_height(&self) -> u32 {
+        self.image_height
+    }
+}
+
+impl Default for Camera {
+    fn default() -> Self {
+        Self::new()
     }
 }

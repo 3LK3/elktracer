@@ -1,7 +1,8 @@
 [workspace]
-resolver = "2"
+resolver = "3"
 
 members = [
+    "elkengine_core",
     "elktracer_benchmarks",
     "elktracer_cli",
     "elktracer_core",
