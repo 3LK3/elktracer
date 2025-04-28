@@ -1,9 +1,9 @@
 use crate::{
+    camera::Camera,
     color::Color,
-    math::{interval::Interval, ray::Ray, vector3::Vec3f},
-    profile_scope,
-    ray_hit::RayHitTest,
-    scene::{camera::Camera, tree::SceneTree},
+    math::{interval::Interval, ray::Ray},
+    ray_hit::{RayHitDetails, RayHitTest},
+    raytracer_context::RaytracerContext,
 };
 
 pub mod image {
@@ -68,23 +68,8 @@ pub mod image {
             self.pixel_data[index + 3] = rgba.a;
         }
 
-        pub fn data(&self) -> &[u8] {
-            &self.pixel_data
-        }
-
-        pub fn save<P: AsRef<std::path::Path>>(
-            &self,
-            path: P,
-            format: image::ImageFormat,
-        ) -> Result<(), ImageError> {
-            let buffer: image::RgbaImage = ImageBuffer::from_vec(
-                self.width,
-                self.height,
-                self.pixel_data.clone(),
-            )
-            .expect("Failed to create image buffer from vector");
-
-            buffer.save_with_format(path, format)
+        pub fn data(&self) -> Vec<u8> {
+            self.pixel_data.to_vec()
         }
 
         pub fn width(&self) -> u32 {
@@ -102,71 +87,98 @@ pub mod image {
             }
         }
     }
+
+    pub fn save_to_file<P: AsRef<std::path::Path>>(
+        image: &Image,
+        path: P,
+        format: image::ImageFormat,
+    ) -> Result<(), ImageError> {
+        let buffer: image::RgbaImage = ImageBuffer::from_vec(
+            image.width,
+            image.height,
+            image.pixel_data.clone(),
+        )
+        .expect("Failed to create image buffer from vector");
+
+        buffer.save_with_format(path, format)
+    }
+}
+
+pub struct RenderOptions {
+    pub image_width: u32,
+    pub aspect_ratio: f64,
+    pub samples_per_pixel: u16,
+    pub max_ray_depth: u16,
+}
+
+impl RenderOptions {
+    pub fn new(
+        image_width: u32,
+        aspect_ratio: f64,
+        samples_per_pixel: u16,
+        max_ray_depth: u16,
+    ) -> Self {
+        Self {
+            image_width,
+            aspect_ratio,
+            samples_per_pixel,
+            max_ray_depth,
+        }
+    }
 }
 
 pub struct Raytracer {
-    scene_tree: SceneTree,
     background_gradient_start: Color,
     background_gradient_end: Color,
-    camera: Camera,
-}
-
-pub struct CameraRenderOptions {
-    pub image_width: u32,
-    pub aspect_ratio: f64,
-    pub position: Vec3f,
-    pub look_at: Vec3f,
-    pub up: Vec3f,
-    pub fov_vertical_degrees: f64,
-    pub defocus_angle: f64,
-    pub focus_distance: f64,
+    raytracer_context: RaytracerContext,
+    objects: Vec<Box<dyn RayHitTest>>,
 }
 
 impl Raytracer {
     pub fn new() -> Self {
         Self {
-            scene_tree: SceneTree::new(),
             background_gradient_start: Color::new(0.3, 0.6, 0.9),
             background_gradient_end: Color::new(1.0, 1.0, 1.0),
-            camera: Camera::new(),
+            raytracer_context: RaytracerContext::new(),
+            objects: Vec::new(),
         }
-    }
-
-    pub fn add_scene_object<T: RayHitTest + 'static>(&mut self, object: T) {
-        self.scene_tree.add(object);
     }
 
     pub fn render_image(
         &mut self,
-        options: &CameraRenderOptions,
-        samples_per_pixel: u16,
-        max_ray_depth: u16,
+        camera: &Camera,
+        objects: Vec<Box<dyn RayHitTest>>,
+        options: RenderOptions,
     ) -> image::Image {
-        profile_scope!("Raytracer::render_image");
+        self.objects = objects;
 
-        self.camera.update_viewport(options);
+        self.raytracer_context.update_viewport(
+            options.image_width,
+            options.aspect_ratio,
+            camera,
+        );
 
-        let pixel_samples_scale = Self::pixel_samples_scale(samples_per_pixel);
+        let pixel_samples_scale =
+            Self::pixel_samples_scale(options.samples_per_pixel);
 
         log::info!(
             "Rendering image\n  - size: {}x{}",
-            self.camera.image_width(),
-            self.camera.image_height()
+            self.raytracer_context.image_width(),
+            self.raytracer_context.image_height()
         );
 
         let mut rgb_image = image::Image::new(
-            self.camera.image_width(),
-            self.camera.image_height(),
+            self.raytracer_context.image_width(),
+            self.raytracer_context.image_height(),
         );
 
-        for y in 0..self.camera.image_height() {
-            // log::debug!("{}/{}", y, self.image_height - 1);
-            for x in 0..self.camera.image_width() {
+        for y in 0..self.raytracer_context.image_height() {
+            for x in 0..self.raytracer_context.image_width() {
                 let mut color = Color::new(0.0, 0.0, 0.0);
 
-                for _sample in 0..samples_per_pixel {
-                    let ray = &self.camera.get_ray(x, y);
-                    color += self.calculate_color(ray, max_ray_depth);
+                for _sample in 0..options.samples_per_pixel {
+                    let ray = &self.raytracer_context.get_ray(x, y);
+                    color += self.calculate_color(ray, options.max_ray_depth);
                 }
 
                 let color1 = color * pixel_samples_scale;
@@ -182,9 +194,8 @@ impl Raytracer {
             return Color::new(0.0, 0.0, 0.0);
         }
 
-        if let Some(ray_hit) = self
-            .scene_tree
-            .does_hit(ray, &Interval::new(0.001, f64::INFINITY))
+        if let Some(ray_hit) =
+            self.does_hit_object(ray, &Interval::new(0.001, f64::INFINITY))
         {
             match ray_hit.material.scatter(
                 ray,
@@ -207,6 +218,26 @@ impl Raytracer {
 
     fn pixel_samples_scale(samples_per_pixel: u16) -> f64 {
         1.0 / (samples_per_pixel as f64)
+    }
+
+    fn does_hit_object(
+        &mut self,
+        ray: &Ray,
+        ray_t: &crate::math::interval::Interval,
+    ) -> Option<crate::ray_hit::RayHitDetails> {
+        let mut hit_result: Option<RayHitDetails> = None;
+        let mut closest = ray_t.max();
+
+        for object in self.objects.iter_mut() {
+            if let Some(hit) =
+                object.does_hit(ray, &Interval::new(ray_t.min(), closest))
+            {
+                closest = hit.t();
+                hit_result = Some(hit);
+            }
+        }
+
+        hit_result
     }
 }
 

@@ -15,19 +15,8 @@ impl Color {
         Self { r, g, b }
     }
 
-    pub fn as_rgb(&self) -> image::Rgb<u8> {
-        let intensity = Interval::new(0.0, 0.999);
-
-        image::Rgb([
-            (256.0 * intensity.clamp(Self::linear_to_gamma(self.r))) as u8,
-            (256.0 * intensity.clamp(Self::linear_to_gamma(self.g))) as u8,
-            (256.0 * intensity.clamp(Self::linear_to_gamma(self.b))) as u8,
-        ])
-    }
-
     pub fn as_rgba(&self) -> raytracer::image::Rgba {
         let intensity = Interval::new(0.0, 0.999);
-
         raytracer::image::Rgba::new(
             (256.0 * intensity.clamp(Self::linear_to_gamma(self.r))) as u8,
             (256.0 * intensity.clamp(Self::linear_to_gamma(self.g))) as u8,
@@ -89,6 +78,12 @@ impl Mul<f64> for Color {
     }
 }
 
+impl From<[f64; 3]> for Color {
+    fn from(array: [f64; 3]) -> Self {
+        Self::new(array[0], array[1], array[2])
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -113,13 +108,13 @@ mod tests {
         // assert_eq!(rgb.0[2], 255);
     }
 
-    #[test]
-    fn as_rgb_should_clamp_correctly() {
-        let color = Color::new(2.0, -0.5, 1.1);
-        let rgb = color.as_rgb();
+    // #[test]
+    // fn as_rgb_should_clamp_correctly() {
+    //     let color = Color::new(2.0, -0.5, 1.1);
+    //     let rgb = color.as_rgb();
 
-        assert_eq!(rgb.0[0], 255);
-        assert_eq!(rgb.0[1], 0);
-        assert_eq!(rgb.0[2], 255);
-    }
+    //     assert_eq!(rgb.0[0], 255);
+    //     assert_eq!(rgb.0[1], 0);
+    //     assert_eq!(rgb.0[2], 255);
+    // }
 }

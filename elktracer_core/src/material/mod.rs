@@ -9,7 +9,7 @@ use crate::{
 
 pub trait Material {
     fn scatter(
-        &mut self,
+        &self,
         ray: &Ray,
         hit_point: Vec3f,
         hit_normal: Vec3f,

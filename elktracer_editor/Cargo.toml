@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 elktracer_core = { path = "../elktracer_core" }
-elkengine_core = { path = "../elkengine_core" }
-# Logging
-log = { workspace = true }
+bevy = { version = "0.16", features = ["dynamic_linking", "bevy_dev_tools"] }
+bevy_egui = { version = "0.34.1" }
+bevy-inspector-egui = { version = "0.31.0" }
+egui_dock = { version = "0.16.0" }

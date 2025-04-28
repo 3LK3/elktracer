@@ -1,0 +1,80 @@
+{
+    "camera": {
+        "position": [ 12, 2, 3 ],
+        "look-at": [ 0, 0, 0 ],
+        "up": [ 0, 1, 0 ],
+        "fov-vertical-degrees": 15,
+        "defocus-angle": 0.6,
+        "focus-distance": 10
+    },
+    "materials": {
+        "ground": {
+            "type": "lambert",
+            "albedo": [ 0.8, 0.8, 0.0 ]
+        },
+        "center": {
+            "type": "lambert",
+            "albedo": [ 0.1, 0.2, 0.5 ]
+        },
+        "left": {
+            "type": "transparent",
+            "refraction-index": 1.5
+        },
+        "bubble": {
+            "type": "transparent",
+            "refraction-index": 0.66666666666
+        },
+        "right": {
+            "type": "metal",
+            "albedo": [ 0.8, 0.6, 0.2 ],
+            "fuzziness": 1
+        }
+    },
+    "objects": [
+        {
+            "name": "Ground",
+            "position": [ 0.0, -100.5, -1.0 ],
+            "material": "ground",
+            "object": {
+                "type": "sphere",
+                "radius": 100
+            }
+        },
+        {
+            "name": "Center",
+            "position": [ 1.0, 0.0, 1.2 ],
+            "material": "center",
+            "object": {
+                "type": "sphere",
+                "radius": 0.5
+            }
+        },
+        {
+            "name": "Left",
+            "position": [ 3.0, 0.5, 1.0 ],
+            "material": "left",
+            "object": {
+                "type": "sphere",
+                "radius": 0.5
+            }
+        },
+        {
+            "name": "Bubble",
+            "position": [ 3.0, 0.5, 1.0 ],
+            "material": "bubble",
+            "object": {
+                "type": "sphere",
+                "radius": 0.4
+            }
+        },
+        {
+            "name": "Right",
+            "position": [ 1.0, 0.2, -2.0 ],
+            "material": "right",
+            "object": {
+                "type": "sphere",
+                "radius": 0.5
+            }
+        }
+    ]
+}

@@ -1,17 +1,30 @@
-pub mod color;
-pub mod error;
-pub mod material;
-pub mod math;
-pub mod profiler;
-pub mod random;
-pub mod ray_hit;
-pub mod raytracer;
-pub mod scene;
-pub mod utils;
+mod camera;
+mod color;
+mod error;
+mod material;
+mod math;
+mod object;
+#[cfg(not(target_arch = "wasm32"))]
+mod profiler;
+mod random;
+mod ray_hit;
+mod raytracer;
+mod raytracer_context;
+mod utils;
 
-pub use image;
+pub use camera::Camera;
+pub use color::Color;
+pub use math::vector3::Vec3f;
+pub use ray_hit::RayHitTest;
+pub use raytracer::{Raytracer, RenderOptions, image::*};
 
-pub use self::error::{Error, Result};
+pub use material::Material;
+pub use material::lambert::LambertMaterial;
+pub use material::metal::MetalMaterial;
+pub use material::transparent::TransparentMaterial;
+pub use object::sphere::Sphere;
+
+pub use image as image_rs;
 
 pub mod logging {
     pub fn initialize() {

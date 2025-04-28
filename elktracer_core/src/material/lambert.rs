@@ -17,7 +17,7 @@ impl LambertMaterial {
 
 impl Material for LambertMaterial {
     fn scatter(
-        &mut self,
+        &self,
         _ray: &Ray,
         hit_point: Vec3f,
         hit_normal: Vec3f,

@@ -1,11 +1,11 @@
 use crate::{
+    camera::Camera,
     math::{ray::Ray, vector3::Vec3f},
     random,
-    raytracer::CameraRenderOptions,
 };
 
-pub struct Camera {
-    position: Vec3f,
+pub struct RaytracerContext {
+    camera_position: Vec3f,
     image_width: u32,
     image_height: u32,
     // Defocus / Depth of field
@@ -18,10 +18,10 @@ pub struct Camera {
     viewport_pixel_delta_y: Vec3f,
 }
 
-impl Camera {
+impl RaytracerContext {
     pub fn new() -> Self {
         Self {
-            position: Vec3f::zero(),
+            camera_position: Vec3f::zero(),
             image_width: 0,
             image_height: 0,
             defocus_angle: 0.0,
@@ -45,7 +45,7 @@ impl Camera {
             + (self.viewport_pixel_delta_y * (y as f64 + offset.1));
 
         let origin = if self.defocus_angle <= 0.0 {
-            self.position
+            self.camera_position
         } else {
             self.defocus_disk_sample()
         };
@@ -55,26 +55,30 @@ impl Camera {
 
     fn defocus_disk_sample(&mut self) -> Vec3f {
         let p = Vec3f::random_in_unit_disk();
-        self.position
+        self.camera_position
             + (self.defocus_disk_x * p.x())
             + (self.defocus_disk_y * p.y())
     }
 
-    pub fn update_viewport(&mut self, options: &CameraRenderOptions) {
-        self.image_width = options.image_width;
-        self.image_height =
-            (options.image_width as f64 / options.aspect_ratio) as u32;
+    pub fn update_viewport(
+        &mut self,
+        image_width: u32,
+        aspect_ratio: f64,
+        camera: &Camera,
+    ) {
+        self.image_width = image_width;
+        self.image_height = (image_width as f64 / aspect_ratio) as u32;
 
-        let look_direction = options.position - options.look_at;
+        let look_direction = camera.position - camera.look_at;
 
         let viewport_height: f64 = 2.0
-            * (options.fov_vertical_degrees.to_radians() / 2.0).tan()
-            * options.focus_distance;
+            * (camera.fov_vertical_degrees.to_radians() / 2.0).tan()
+            * camera.focus_distance;
         let viewport_width: f64 = viewport_height
             * (self.image_width as f64 / self.image_height as f64);
 
         let w = look_direction.unit();
-        let u = options.up.cross(w).unit();
+        let u = camera.up.cross(w).unit();
         let v = w.cross(u);
 
         let viewport_edge_x = u * viewport_width;
@@ -83,8 +87,8 @@ impl Camera {
         let pixel_delta_x = viewport_edge_x / (self.image_width as f64);
         let pixel_delta_y = viewport_edge_y / (self.image_height as f64);
 
-        let viewport_upper_left = options.position
-            - (w * options.focus_distance)
+        let viewport_upper_left = camera.position
+            - (w * camera.focus_distance)
             - viewport_edge_x / 2.0
             - viewport_edge_y / 2.0;
 
@@ -93,14 +97,14 @@ impl Camera {
         self.viewport_pixel_delta_x = pixel_delta_x;
         self.viewport_pixel_delta_y = pixel_delta_y;
 
-        let defocus_radius = options.focus_distance
-            * (options.defocus_angle / 2.0).to_radians().tan();
+        let defocus_radius = camera.focus_distance
+            * (camera.defocus_angle / 2.0).to_radians().tan();
 
         self.defocus_disk_x = u * defocus_radius;
         self.defocus_disk_x = v * defocus_radius;
-        self.defocus_angle = options.defocus_angle;
+        self.defocus_angle = camera.defocus_angle;
 
-        self.position = options.position;
+        self.camera_position = camera.position;
     }
 
     pub fn image_width(&self) -> u32 {
@@ -112,7 +116,7 @@ impl Camera {
     }
 }
 
-impl Default for Camera {
+impl Default for RaytracerContext {
     fn default() -> Self {
         Self::new()
     }

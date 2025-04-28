@@ -1,23 +1,26 @@
+use std::sync::Arc;
+
 use crate::{
     material::Material,
     math::{interval::Interval, ray::Ray, vector3::Vec3f},
 };
 
-pub struct RayHitDetails<'a> {
+pub struct RayHitDetails {
     point: Vec3f,
     t: f64,
     normal: Vec3f,
     is_front_face: bool,
-    pub material: &'a mut dyn Material,
+    // pub material: &'a mut dyn Material,
+    pub material: Arc<dyn Material>,
 }
 
-impl<'a> RayHitDetails<'a> {
+impl RayHitDetails {
     pub fn from(
         point: Vec3f,
         t: f64,
         ray: &Ray,
         outward_normal: Vec3f,
-        material: &'a mut dyn Material,
+        material: Arc<dyn Material>,
     ) -> Self {
         let is_front_face = ray.direction().dot(outward_normal) < 0.0;
         Self {

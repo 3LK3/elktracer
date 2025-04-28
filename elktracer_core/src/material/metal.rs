@@ -21,7 +21,7 @@ impl MetalMaterial {
 
 impl Material for MetalMaterial {
     fn scatter(
-        &mut self,
+        &self,
         ray: &crate::math::ray::Ray,
         hit_point: Vec3f,
         hit_normal: Vec3f,

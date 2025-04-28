@@ -1,2 +1,4 @@
-pub type Error = Box<dyn std::error::Error>;
-pub type Result<T> = core::result::Result<T, Error>;
+// pub type Result<T> = core::result::Result<T, Error>;
+
+#[derive(Debug, PartialEq)]
+pub enum Error {}

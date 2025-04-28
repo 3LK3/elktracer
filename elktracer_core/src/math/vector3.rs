@@ -190,6 +190,12 @@ impl Neg for Vec3f {
     }
 }
 
+impl From<[f64; 3]> for Vec3f {
+    fn from(array: [f64; 3]) -> Self {
+        Self::new(array[0], array[1], array[2])
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

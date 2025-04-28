@@ -21,7 +21,7 @@ impl TransparentMaterial {
 
 impl Material for TransparentMaterial {
     fn scatter(
-        &mut self,
+        &self,
         ray: &crate::math::ray::Ray,
         hit_point: crate::math::vector3::Vec3f,
         hit_normal: crate::math::vector3::Vec3f,

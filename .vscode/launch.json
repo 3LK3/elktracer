@@ -68,7 +68,8 @@
                 "args": [
                     "build",
                     "--bin=elktracer_editor",
-                    "--package=elktracer_editor"
+                    "--package=elktracer_editor",
+                    "--profile=dev"
                 ],
                 "filter": {
                     "name": "elktracer_editor",
@@ -76,10 +77,12 @@
                 }
             },
             "env": {
-                "RUST_BACKTRACE": "full"
+                "RUST_BACKTRACE": "full",
+                "CARGO_MANIFEST_DIR": "${workspaceFolder}/elktracer_editor",
+                "PATH": "${env:USERPROFILE}/.rustup/toolchains/stable-x86_64-pc-windows-msvc/bin;${workspaceFolder}/target/debug/deps;${env:PATH}",
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/elktracer_editor"
         },
         {
             "type": "lldb",
@@ -90,7 +93,8 @@
                     "test",
                     "--no-run",
                     "--bin=elktracer_editor",
-                    "--package=elktracer_editor"
+                    "--package=elktracer_editor",
+                    "--profile=dev"
                 ],
                 "filter": {
                     "name": "elktracer_editor",

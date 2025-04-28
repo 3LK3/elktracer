@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     material::Material,
     math::{interval::Interval, ray::Ray, vector3::Vec3f},
@@ -7,14 +9,14 @@ use crate::{
 pub struct Sphere {
     center_position: Vec3f,
     radius: f64,
-    material: Box<dyn Material>,
+    material: Arc<dyn Material>,
 }
 
 impl Sphere {
     pub fn new(
         center_position: Vec3f,
         radius: f64,
-        material: Box<dyn Material>,
+        material: Arc<dyn Material>,
     ) -> Self {
         Self {
             center_position,
@@ -58,7 +60,7 @@ impl RayHitTest for Sphere {
             root,
             ray,
             (point - self.center_position) / self.radius,
-            &mut *self.material,
+            self.material.clone(),
         ))
     }
 }

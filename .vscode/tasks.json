@@ -1,0 +1,50 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run elktracer_editor",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"run",
+				"--bin=elktracer_editor",
+				"--profile=dev"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"problemMatcher": [ ],
+		},
+		{
+			"label": "Build elktracer_cli",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"build",
+				"--bin=elktracer_cli"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"problemMatcher": [ ],
+		},
+		{
+			"label": "Run elktracer_cli demo",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"run",
+				"--bin=elktracer_cli",
+				"--",
+				"-s elktracer_cli/examples/demo.json"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"problemMatcher": [ ],
+		}
+	]
+}
