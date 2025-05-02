@@ -2,19 +2,60 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "Run elktracer_editor",
+			"label": "Run elktracer_editor (dev)",
 			"type": "shell",
 			"command": "cargo",
 			"args": [
 				"run",
 				"--bin=elktracer_editor",
-				"--profile=dev"
+				"--profile=dev",
+				"--features=bevy/dynamic_linking"
 			],
 			"group": {
 				"kind": "build",
 				"isDefault": false
 			},
 			"problemMatcher": [ ],
+			"options": {
+				"cwd": "${workspaceFolder}/elktracer_editor"
+			}
+		},
+		{
+			"label": "Run elktracer_editor (wasm)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"run",
+				"--bin=elktracer_editor",
+				"--profile=dev",
+				"--target=wasm32-unknown-unknown"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"problemMatcher": [ ],
+			"options": {
+				"cwd": "${workspaceFolder}/elktracer_editor"
+			}
+		},
+		{
+			"label": "Build elktracer_editor (release)",
+			"type": "shell",
+			"command": "cargo",
+			"args": [
+				"build",
+				"--bin=elktracer_editor",
+				"--release",
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"problemMatcher": [ ],
+			"options": {
+				"cwd": "${workspaceFolder}/elktracer_editor"
+			}
 		},
 		{
 			"label": "Build elktracer_cli",
@@ -29,6 +70,9 @@
 				"isDefault": false
 			},
 			"problemMatcher": [ ],
+			"options": {
+				"cwd": "${workspaceFolder}/elktracer_cli"
+			}
 		},
 		{
 			"label": "Run elktracer_cli demo",
@@ -38,13 +82,16 @@
 				"run",
 				"--bin=elktracer_cli",
 				"--",
-				"-s elktracer_cli/examples/demo.json"
+				"render -f examples/demo.json -o examples/demo.png -w 600 -a 1.77777777778 -s 50 -r 50"
 			],
 			"group": {
 				"kind": "build",
 				"isDefault": false
 			},
 			"problemMatcher": [ ],
+			"options": {
+				"cwd": "${workspaceFolder}/elktracer_cli"
+			}
 		}
 	]
 }

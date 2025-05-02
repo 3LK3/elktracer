@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::{
     camera::Camera,
     color::Color,
@@ -7,7 +9,7 @@ use crate::{
 };
 
 pub mod image {
-    use image::{ImageBuffer, ImageError};
+    use image::{ImageError, RgbaImage};
 
     pub struct Rgba {
         r: u8,
@@ -88,22 +90,35 @@ pub mod image {
         }
     }
 
+    impl From<&Image> for RgbaImage {
+        fn from(val: &Image) -> Self {
+            RgbaImage::from_vec(val.width, val.height, val.pixel_data.clone())
+                .expect("Failed to create image buffer from vector")
+        }
+    }
+
+    impl From<Image> for RgbaImage {
+        fn from(val: Image) -> Self {
+            RgbaImage::from(&val)
+        }
+    }
+
     pub fn save_to_file<P: AsRef<std::path::Path>>(
         image: &Image,
         path: P,
         format: image::ImageFormat,
     ) -> Result<(), ImageError> {
-        let buffer: image::RgbaImage = ImageBuffer::from_vec(
-            image.width,
-            image.height,
-            image.pixel_data.clone(),
-        )
-        .expect("Failed to create image buffer from vector");
-
-        buffer.save_with_format(path, format)
+        // let buffer: image::RgbaImage = ImageBuffer::from_vec(
+        //     image.width,
+        //     image.height,
+        //     image.pixel_data.clone(),
+        // )
+        // .expect("Failed to create image buffer from vector");
+        RgbaImage::from(image).save_with_format(path, format)
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct RenderOptions {
     pub image_width: u32,
     pub aspect_ratio: f64,
@@ -124,6 +139,19 @@ impl RenderOptions {
             samples_per_pixel,
             max_ray_depth,
         }
+    }
+}
+
+impl fmt::Display for RenderOptions {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "RenderOptions {{ image_width: {}, aspect_ratio: {:.2}, samples_per_pixel: {}, max_ray_depth: {} }}",
+            self.image_width,
+            self.aspect_ratio,
+            self.samples_per_pixel,
+            self.max_ray_depth
+        )
     }
 }
 
@@ -148,7 +176,7 @@ impl Raytracer {
         &mut self,
         camera: &Camera,
         objects: Vec<Box<dyn RayHitTest>>,
-        options: RenderOptions,
+        options: &RenderOptions,
     ) -> image::Image {
         self.objects = objects;
 
@@ -161,11 +189,7 @@ impl Raytracer {
         let pixel_samples_scale =
             Self::pixel_samples_scale(options.samples_per_pixel);
 
-        log::info!(
-            "Rendering image\n  - size: {}x{}",
-            self.raytracer_context.image_width(),
-            self.raytracer_context.image_height()
-        );
+        log::info!("Rendering image with {}", options);
 
         let mut rgb_image = image::Image::new(
             self.raytracer_context.image_width(),

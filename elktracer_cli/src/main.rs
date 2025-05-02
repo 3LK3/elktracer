@@ -2,17 +2,11 @@ mod error;
 mod model;
 
 use self::error::{Error, Result};
-use self::model::SceneModel;
-
-use std::collections::HashMap;
-use std::sync::Arc;
-use std::{fs::File, io::BufReader};
 
 use clap::{Parser, Subcommand};
-use elktracer_core::{
-    Color, LambertMaterial, Material, MetalMaterial, RayHitTest, Sphere,
-    TransparentMaterial, Vec3f,
-};
+use elktracer_core::Camera;
+use elktracer_json::model::SceneModel;
+use elktracer_json::{get_scene_objects, load_scene_model};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -64,67 +58,17 @@ fn main() -> Result<()> {
                 ));
             }
 
-            let file =
-                File::open(scene_file).expect("Unable to open scene file");
-            let reader = BufReader::new(file);
-            let scene: SceneModel = serde_json::from_reader(reader)
-                .expect("Unable to parse scene json");
+            let scene: SceneModel = load_scene_model(scene_file);
             log::trace!("Parsed scene: {:?}", scene);
 
-            let camera = elktracer_core::Camera::new(
-                Vec3f::from(scene.camera.position),
-                Vec3f::from(scene.camera.look_at),
-                Vec3f::from(scene.camera.up),
-                scene.camera.fov_vertical_degrees,
-                scene.camera.defocus_angle,
-                scene.camera.focus_distance,
-            );
-
-            let mut materials: HashMap<String, Arc<dyn Material>> =
-                HashMap::new();
-            for (name, material_type) in scene.materials {
-                materials.insert(
-                    name,
-                    match material_type {
-                        model::MaterialType::Lambert { albedo } => {
-                            Arc::new(LambertMaterial::new(Color::from(albedo)))
-                        }
-                        model::MaterialType::Metal { albedo, fuzziness } => {
-                            Arc::new(MetalMaterial::new(
-                                Color::from(albedo),
-                                fuzziness,
-                            ))
-                        }
-                        model::MaterialType::Transparent {
-                            refraction_index,
-                        } => {
-                            Arc::new(TransparentMaterial::new(refraction_index))
-                        }
-                    },
-                );
-            }
-
-            let mut objects: Vec<Box<dyn RayHitTest>> = vec![];
-            for object in scene.objects {
-                objects.push(match object.object {
-                    model::ObjectType::Sphere { radius } => {
-                        Box::new(Sphere::new(
-                            Vec3f::from(object.position),
-                            radius,
-                            materials
-                                .get(&object.material)
-                                .expect("Material not found")
-                                .clone(),
-                        ))
-                    }
-                });
-            }
+            let camera = Camera::from(scene.camera.clone());
+            let objects = get_scene_objects(&scene);
 
             let mut raytracer = elktracer_core::Raytracer::new();
             let image = raytracer.render_image(
                 &camera,
                 objects,
-                elktracer_core::RenderOptions::new(
+                &elktracer_core::RenderOptions::new(
                     *image_width,
                     *aspect_ratio,
                     *samples_per_pixel,

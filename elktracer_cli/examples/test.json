@@ -1,0 +1,1 @@
+{"camera":{"position":[4.5,4.7,0.0],"look-at":[0.0,0.6,0.0],"up":[0.0,1.0,0.0],"fov-vertical-degrees":1.5,"defocus-angle":0.7,"focus-distance":0.7},"materials":[{"id":"New Lambert Material","material":{"type":"Lambert","albedo":[0.3201408,0.0,0.0]}}],"objects":[{"id":"New Sphere","position":[0.0,1.0,0.0],"material":"New Lambert Material","object":{"type":"Sphere","radius":1.0}}]}

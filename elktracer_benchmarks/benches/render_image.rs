@@ -70,7 +70,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             raytracer.render_image(
                 &camera,
                 objects,
-                RenderOptions {
+                &RenderOptions {
                     aspect_ratio,
                     image_width,
                     samples_per_pixel,

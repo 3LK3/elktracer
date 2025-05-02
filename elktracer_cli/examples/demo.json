@@ -7,72 +7,87 @@
         "defocus-angle": 0.6,
         "focus-distance": 10
     },
-    "materials": {
-        "ground": {
-            "type": "lambert",
-            "albedo": [ 0.8, 0.8, 0.0 ]
+    "materials": [
+        {
+            "id": "ground",
+            "material": {
+                "type": "Lambert",
+                "albedo": [ 0.8, 0.8, 0.0 ]
+            }
         },
-        "center": {
-            "type": "lambert",
-            "albedo": [ 0.1, 0.2, 0.5 ]
+        {
+            "id": "center",
+            "material": {
+                "type": "Lambert",
+                "albedo": [ 0.1, 0.2, 0.5 ]
+            }
         },
-        "left": {
-            "type": "transparent",
-            "refraction-index": 1.5
+        {
+            "id": "left",
+            "material": {
+                "type": "Transparent",
+                "refraction-index": 1.5
+            }
         },
-        "bubble": {
-            "type": "transparent",
-            "refraction-index": 0.66666666666
+        {
+            "id": "bubble",
+            "material": {
+                "type": "Transparent",
+                "refraction-index": 0.66666666666
+            }
         },
-        "right": {
-            "type": "metal",
-            "albedo": [ 0.8, 0.6, 0.2 ],
-            "fuzziness": 1
+        {
+            "id": "right",
+            "material": {
+                "type": "Metal",
+                "albedo": [ 0.8, 0.6, 0.2 ],
+                "fuzziness": 1
+            }
         }
-    },
+    ],
     "objects": [
         {
-            "name": "Ground",
+            "id": "Ground",
             "position": [ 0.0, -100.5, -1.0 ],
             "material": "ground",
             "object": {
-                "type": "sphere",
+                "type": "Sphere",
                 "radius": 100
             }
         },
         {
-            "name": "Center",
+            "id": "Center",
             "position": [ 1.0, 0.0, 1.2 ],
             "material": "center",
             "object": {
-                "type": "sphere",
+                "type": "Sphere",
                 "radius": 0.5
             }
         },
         {
-            "name": "Left",
+            "id": "Left",
             "position": [ 3.0, 0.5, 1.0 ],
             "material": "left",
             "object": {
-                "type": "sphere",
+                "type": "Sphere",
                 "radius": 0.5
             }
         },
         {
-            "name": "Bubble",
+            "id": "Bubble",
             "position": [ 3.0, 0.5, 1.0 ],
             "material": "bubble",
             "object": {
-                "type": "sphere",
+                "type": "Sphere",
                 "radius": 0.4
             }
         },
         {
-            "name": "Right",
+            "id": "Right",
             "position": [ 1.0, 0.2, -2.0 ],
             "material": "right",
             "object": {
-                "type": "sphere",
+                "type": "Sphere",
                 "radius": 0.5
             }
         }

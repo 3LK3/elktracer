@@ -84,6 +84,12 @@ impl From<[f64; 3]> for Color {
     }
 }
 
+impl From<[f32; 3]> for Color {
+    fn from(array: [f32; 3]) -> Self {
+        Self::new(array[0] as f64, array[1] as f64, array[2] as f64)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

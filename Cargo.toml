@@ -6,6 +6,7 @@ members = [
     "elktracer_cli",
     "elktracer_core",
     "elktracer_editor",
+    "elktracer_json",
 ]
 
 [workspace.dependencies]

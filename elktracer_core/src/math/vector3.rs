@@ -113,12 +113,24 @@ impl Vec3f {
         self.x
     }
 
+    pub fn set_x(&mut self, x: f64) {
+        self.x = x;
+    }
+
     pub fn y(&self) -> f64 {
         self.y
     }
 
+    pub fn set_y(&mut self, y: f64) {
+        self.y = y;
+    }
+
     pub fn z(&self) -> f64 {
         self.z
+    }
+
+    pub fn set_z(&mut self, z: f64) {
+        self.z = z;
     }
 }
 
@@ -195,6 +207,12 @@ impl From<[f64; 3]> for Vec3f {
         Self::new(array[0], array[1], array[2])
     }
 }
+
+// impl From<Vec3f> for [f64; 3] {
+//     fn from(val: Vec3f) -> Self {
+//         [val.x, val.y, val.z]
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
